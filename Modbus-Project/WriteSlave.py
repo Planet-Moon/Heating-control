@@ -32,6 +32,12 @@ class sma_inverter:
         self.totalPower_Register = modbus_register(30775,2,self.UnitID)
         self.get_totalPower()
 
+        self.todayPower_Register = modbus_register(30535,2,self.UnitID)
+        self.get_todayPower()
+
+        self.timeZone_Register = modbus_register(40003,2,self.UnitID)
+        self.get_timeZone()
+
     def get_pysical_data(self):
         UnitID_response = self.UnitID_Register.get_data()
         self.serialnumber = UnitID_response[0]*65536 + UnitID_response[1]
@@ -49,7 +55,17 @@ class sma_inverter:
     def get_totalPower(self):
         totalPower_response = self.totalPower_Register.get_data()
         self.totalPower = totalPower_response[0] * 65536 + totalPower_response[1]
-        return self.totalPower   
+        return self.totalPower
+
+    def get_todayPower(self):
+        todayPower_response = self.todayPower_Register.get_data()
+        self.todayPower = todayPower_response[0] * 65536 + todayPower_response[1]
+        return self.todayPower
+
+    def get_timeZone(self):
+        timeZone_response = self.timeZone_Register.get_data()
+        self.timeZone = timeZone_response[0] * 65536 + timeZone_response[1]
+        return self.timeZone
 
 class modbus_register:
     def __init__(self,address,length):
