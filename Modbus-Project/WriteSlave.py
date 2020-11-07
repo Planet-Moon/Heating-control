@@ -32,7 +32,7 @@ class modbus_register:
         self.address = address
         self.length = length
         self.response = []
-        self.data = []
+        self.data = []    
 
     def read(self):
         global client
