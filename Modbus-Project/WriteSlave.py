@@ -46,12 +46,7 @@ class modbus_register:
 
 UnitID_Register = modbus_register(42109,4)
 
-client = ModbusClient(ModbusTargetIP)
-try:
-    client.connect()
-    print("Connected!")
-except:
-    print("Connection failed!")
+MySMAInverter = sma_inverter()
 
 def write_modbus(write_register, write_value):
     global client
