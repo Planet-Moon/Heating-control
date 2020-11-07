@@ -3,6 +3,13 @@ from pymodbus.client.sync import ModbusTcpClient as ModbusClient
 import time
 
 ModbusTargetIP = "192.168.178.114"
+client = ModbusClient(ModbusTargetIP)
+try:
+    client.connect()
+    print("Connected!")
+except:
+    print("Connection failed!")
+    exit()
 MAC_Address_Register = 40497
 
 class sma_inverter:
