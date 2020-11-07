@@ -5,6 +5,21 @@ import time
 ModbusTargetIP = "192.168.178.114"
 MAC_Address_Register = 40497
 
+class sma_inverter:
+    def __init__(self):
+        self.UnitID_Register = modbus_register(42109,4)
+        self.MACAddress = modbus_register(40497,1)
+        self.serialnumber = 0
+        self.susyID = 0
+        self.UnitID = 0
+        self.get_pysical_data()
+
+    def get_pysical_data(self):
+        response = self.UnitID_Register.get_data()
+        self.serialnumber = (response[0]*65536)+response[1]
+        self.susyID = response[2]
+        self.UnitID = response[3]
+
 class modbus_register:
     def __init__(self,address,length):
         self.address = address
