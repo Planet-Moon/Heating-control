@@ -14,18 +14,42 @@ MAC_Address_Register = 40497
 
 class sma_inverter:
     def __init__(self):
-        self.UnitID_Register = modbus_register(42109,4)
-        self.MACAddress = modbus_register(40497,1)
         self.serialnumber = 0
         self.susyID = 0
-        self.UnitID = 0
+        self.UnitID = 1
+        self.Model = 0
+        self.operationHealth = 0
+        self.totalPower = 0
+
+        self.UnitID_Register = modbus_register(42109,4,1)
+        self.MACAddress_Register = modbus_register(40497,1,self.UnitID)
+        self.Model_Register = modbus_register(30053,2,self.UnitID)
         self.get_pysical_data()
 
+        self.operationHealth_Register = modbus_register(30201,2,self.UnitID)
+        self.get_operationHealth()
+
+        self.totalPower_Register = modbus_register(30775,2,self.UnitID)
+        self.get_totalPower()
+
     def get_pysical_data(self):
-        response = self.UnitID_Register.get_data()
-        self.serialnumber = (response[0]*65536)+response[1]
-        self.susyID = response[2]
-        self.UnitID = response[3]
+        UnitID_response = self.UnitID_Register.get_data()
+        self.serialnumber = UnitID_response[0]*65536 + UnitID_response[1]
+        self.susyID = UnitID_response[2]
+        self.UnitID = UnitID_response[3]
+        Model_response = self.Model_Register.get_data()
+        self.Model = Model_response[0]*65536 + Model_response[1]
+        return UnitID_response
+
+    def get_operationHealth(self):
+        operationHealth_response = self.operationHealth_Register.get_data()
+        self.operationHealth = operationHealth_response[0]*65536 + operationHealth_response[1]
+        return self.operationHealth
+
+    def get_totalPower(self):
+        totalPower_response = self.totalPower_Register.get_data()
+        self.totalPower = totalPower_response[0] * 65536 + totalPower_response[1]
+        return self.totalPower   
 
 class modbus_register:
     def __init__(self,address,length):
