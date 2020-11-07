@@ -9,10 +9,18 @@ class modbus_register:
     def __init__(self,address,length):
         self.address = address
         self.length = length
+        self.response = []
+        self.data = []
 
     def read(self):
         global client
-        return client.read_holding_registers(42109,count=4, unit=1)
+        self.response = client.read_holding_registers(self.address,count=self.length, unit=1)
+        return self.response
+
+    def get_data(self):
+        self.read()
+        self.data = self.response.registers
+        return self.data
 
 UnitID_Register = modbus_register(42109,4)
 
