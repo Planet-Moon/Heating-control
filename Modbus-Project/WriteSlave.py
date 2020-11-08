@@ -106,26 +106,16 @@ def read_modbus(read_register, count):
         return read_value
     except:
         print("modbus read of register "+str(read_register)+" failed!")
-
-UnitID_Register = modbus_register(42109,4,1)
-
+        
 MyEnergyMeter = sma_EnergyMeter()
 
 MyInverter = sma_Inverter()
 print("MyInverter.serialnumber: "+str(MyInverter.serialnumber))
 print("MyInverter.operationHealth: "+str(MyInverter.operationHealth))
 
-SusyID = modbus_register(30003,2,MyInverter.UnitID)
-
 while True:
     current_power = MyInverter.get_totalPower()
     print("Current Power: "+str(current_power)+" W")
     print("Current Power * 3.5: "+str(current_power * 3.5)+" W")
     print("Power today: "+str(MyInverter.get_todayPower())+" Wh")
-    try:
-        test2 = SusyID.get_data()
-        print("test2.data: "+str(test2.data))
-        print("test2.response: "+str(test2.response))
-    except: 
-        print("2")
     time.sleep(15)
