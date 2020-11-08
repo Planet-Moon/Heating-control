@@ -96,18 +96,6 @@ class modbus_register:
         except:
             return
 
-def write_modbus(write_register, write_value):
-    global client
-    client.write_register(write_register, write_value)
-
-def read_modbus(read_register, count):
-    global client
-    try:
-        read_value = client.read_coils(read_register, count)
-        return read_value
-    except:
-        print("modbus read of register "+str(read_register)+" failed!")
-
 MyEnergyMeter = sma_EnergyMeter()
 
 MyInverter = sma_Inverter()
