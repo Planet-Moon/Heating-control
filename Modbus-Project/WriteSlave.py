@@ -12,14 +12,21 @@ except:
     exit()
 MAC_Address_Register = 40497
 
-class sma_inverter:
+
+class sma_EnergyMeter:
+    def __init__(self):
+        print("created sma_Energymeter"+str(self))
+
+class sma_Inverter:
     def __init__(self):
         self.serialnumber = 0
         self.susyID = 0
         self.UnitID = 1
         self.Model = 0
         self.operationHealth = 0
-        self.totalPower = 0
+        self.totalPower = 0 # W
+        self.todayPower = 0 # Wh
+        self.timeZone = 0
 
         self.UnitID_Register = modbus_register(42109,4,1)
         self.MACAddress_Register = modbus_register(40497,1,self.UnitID)
@@ -68,25 +75,25 @@ class sma_inverter:
         return self.timeZone
 
 class modbus_register:
-    def __init__(self,address,length):
+    def __init__(self,address,length,unitID):
         self.address = address
         self.length = length
+        self.unitID = unitID
         self.response = []
         self.data = []    
 
     def read(self):
         global client
-        self.response = client.read_holding_registers(self.address,count=self.length, unit=1)
+        self.response = client.read_holding_registers(self.address,count=self.length, unit=self.unitID)
         return self.response
 
     def get_data(self):
         self.read()
-        self.data = self.response.registers
-        return self.data
-
-UnitID_Register = modbus_register(42109,4)
-
-MySMAInverter = sma_inverter()
+        try: 
+            self.data = self.response.registers
+            return self.data
+        except:
+            return
 
 def write_modbus(write_register, write_value):
     global client
@@ -98,26 +105,27 @@ def read_modbus(read_register, count):
         read_value = client.read_coils(read_register, count)
         return read_value
     except:
-        print("modbus read of register "+str(read_register)+" failed!")    
+        print("modbus read of register "+str(read_register)+" failed!")
 
-def test():
-    response = client.read_holding_registers(0x00,4,unit=1)
-    print(response.registers)
+UnitID_Register = modbus_register(42109,4,1)
 
+MyEnergyMeter = sma_EnergyMeter()
 
-#for i in range(0,255):
-#    print("value at "+str(i)+": "+str(read_modbus(i)))
+MyInverter = sma_Inverter()
+print("MyInverter.serialnumber: "+str(MyInverter.serialnumber))
+print("MyInverter.operationHealth: "+str(MyInverter.operationHealth))
 
-#print("value at "+str(Register_MAC_Address)+" = "+str(read_modbus(Register_MAC_Address)))
+SusyID = modbus_register(30003,2,MyInverter.UnitID)
+
 while True:
-    #test = read_modbus(MAC_Address_Register, 1)
-    test = client.read_holding_registers(42109,count=4, unit=1)
-    try: 
-        print(test.message)
-    except:
-        print("No return message")
-    try: 
-        print("1")
+    current_power = MyInverter.get_totalPower()
+    print("Current Power: "+str(current_power)+" W")
+    print("Current Power * 3.5: "+str(current_power * 3.5)+" W")
+    print("Power today: "+str(MyInverter.get_todayPower())+" Wh")
+    try:
+        test2 = SusyID.get_data()
+        print("test2.data: "+str(test2.data))
+        print("test2.response: "+str(test2.response))
     except: 
         print("2")
-    time.sleep(2)
+    time.sleep(15)
