@@ -60,8 +60,10 @@ class sma_Inverter:
         return self.operationHealth
 
     def get_totalPower(self):
-        totalPower_response = self.totalPower_Register.get_data()
-        self.totalPower = totalPower_response[0] * 65536 + totalPower_response[1]
+        totalPower_response_byte = self.totalPower_Register.get_data()
+        totalPower_response_word = totalPower_response_byte[0] * 65536 + totalPower_response_byte[1]
+        print(str(bin(totalPower_response_word)))
+        self.totalPower = -1 * (totalPower_response_word&0x7FFFFFFF)/2 if totalPower_response_word & 0x80000000 else (totalPower_response_word&0x7FFFFFFF)/2
         return self.totalPower
 
     def get_todayPower(self):
@@ -106,7 +108,7 @@ def read_modbus(read_register, count):
         return read_value
     except:
         print("modbus read of register "+str(read_register)+" failed!")
-        
+
 MyEnergyMeter = sma_EnergyMeter()
 
 MyInverter = sma_Inverter()
