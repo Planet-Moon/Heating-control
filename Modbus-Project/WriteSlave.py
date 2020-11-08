@@ -62,7 +62,6 @@ class sma_Inverter:
     def get_totalPower(self):
         totalPower_response_byte = self.totalPower_Register.get_data()
         totalPower_response_word = totalPower_response_byte[0] * 65536 + totalPower_response_byte[1]
-        print(str(bin(totalPower_response_word)))
         self.totalPower = -1 * (totalPower_response_word&0x7FFFFFFF)/2 if totalPower_response_word & 0x80000000 else (totalPower_response_word&0x7FFFFFFF)/2
         return self.totalPower
 
