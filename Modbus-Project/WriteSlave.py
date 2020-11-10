@@ -107,4 +107,5 @@ while True:
     print("Current Power: "+str(current_power)+" W")
     print("Current Power * 3.5: "+str(current_power * 3.5)+" W")
     print("Power today: "+str(MyInverter.get_todayPower())+" Wh")
+    print("System Power today: "+str(MyInverter.get_todayPower() * 3.5)+" Wh")
     time.sleep(15)
