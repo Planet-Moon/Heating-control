@@ -25,7 +25,7 @@ class sma_Inverter:
         self.Model = 0
         self.operationHealth = 0
         self.totalPower = 0 # W
-        self.todayPower = 0 # Wh
+        self.todayEnergy = 0 # Wh
         self.timeZone = 0
 
         self.UnitID_Register = modbus_register(42109,4,1)
@@ -39,8 +39,8 @@ class sma_Inverter:
         self.totalPower_Register = modbus_register(30775,2,self.UnitID)
         self.get_totalPower()
 
-        self.todayPower_Register = modbus_register(30535,2,self.UnitID)
-        self.get_todayPower()
+        self.todayEnergy_Register = modbus_register(30535,2,self.UnitID)
+        self.get_todayEnergy()
 
         self.timeZone_Register = modbus_register(40003,2,self.UnitID)
         self.get_timeZone()
@@ -65,10 +65,10 @@ class sma_Inverter:
         self.totalPower = -1 * (totalPower_response_word&0x7FFFFFFF)/2 if totalPower_response_word & 0x80000000 else (totalPower_response_word&0x7FFFFFFF)/2
         return self.totalPower
 
-    def get_todayPower(self):
-        todayPower_response = self.todayPower_Register.get_data()
-        self.todayPower = todayPower_response[0] * 65536 + todayPower_response[1]
-        return self.todayPower
+    def get_todayEnergy(self):
+        todayEnergy_response = self.todayEnergy_Register.get_data()
+        self.todayEnergy = todayEnergy_response[0] * 65536 + todayEnergy_response[1]
+        return self.todayEnergy
 
     def get_timeZone(self):
         timeZone_response = self.timeZone_Register.get_data()
@@ -106,6 +106,6 @@ while True:
     current_power = MyInverter.get_totalPower()
     print("Current Power: "+str(current_power)+" W")
     print("Current Power * 3.5: "+str(current_power * 3.5)+" W")
-    print("Power today: "+str(MyInverter.get_todayPower())+" Wh")
-    print("System Power today: "+str(MyInverter.get_todayPower() * 3.5)+" Wh")
+    print("Energy today: "+str(MyInverter.get_todayEnergy())+" Wh")
+    print("System Energy today: "+str(MyInverter.get_todayEnergy() * 3.5)+" Wh")
     time.sleep(15)
