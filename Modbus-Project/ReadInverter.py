@@ -1,6 +1,9 @@
 #!/usr/bin/env python
 from pymodbus.client.sync import ModbusTcpClient as ModbusClient
 import time
+import configparser
+import telepot
+from telepot.loop import MessageLoop
 
 ModbusTargetIP = "192.168.178.114"
 client = ModbusClient(ModbusTargetIP)
@@ -96,6 +99,36 @@ class modbus_register:
         except:
             return
 
+def handle(msg):
+    global bot
+    chat_id = msg['chat']['id']
+    command = msg['text']
+    print ('Got command: '+str(command))
+
+    if command == "/power":
+        bot.sendMessage(chat_id, str(MyInverter.get_totalPower())+" W")
+
+    elif command == "/energy":
+        bot.sendMessage(chat_id, str(MyInverter.get_todayEnergy())+" Wh")
+
+    elif command == "/all":
+        send_string = "Power: "+str(MyInverter.get_totalPower())+" W\nEnergy: "+ str(MyInverter.get_todayEnergy())+" Wh"
+        bot.sendMessage(chat_id, send_string)
+
+def TelegramBot():
+    global bot
+    config = configparser.RawConfigParser()
+    configFilePath = "telegrambot.cfg"
+    readConfig = config.read(configFilePath)
+    bot_token = config.get("telegrambot","token")
+    bot = telepot.Bot(bot_token)
+    botInfo = bot.getMe()
+    MessageLoop(bot,handle).run_as_thread()
+    print("Bot is listening ...")
+
+bot = ""
+TelegramBot()
+
 MyEnergyMeter = sma_EnergyMeter()
 
 MyInverter = sma_Inverter()
@@ -103,9 +136,9 @@ print("MyInverter.serialnumber: "+str(MyInverter.serialnumber))
 print("MyInverter.operationHealth: "+str(MyInverter.operationHealth))
 
 while True:
-    current_power = MyInverter.get_totalPower()
-    print("Current Power: "+str(current_power)+" W")
-    print("Current Power * 3.5: "+str(current_power * 3.5)+" W")
-    print("Energy today: "+str(MyInverter.get_todayEnergy())+" Wh")
-    print("System Energy today: "+str(MyInverter.get_todayEnergy() * 3.5)+" Wh")
+    # current_power = MyInverter.get_totalPower()
+    # print("Current Power: "+str(current_power)+" W")
+    # print("Current Power * 3.5: "+str(current_power * 3.5)+" W")
+    # print("Energy today: "+str(MyInverter.get_todayEnergy())+" Wh")
+    # print("System Energy today: "+str(MyInverter.get_todayEnergy() * 3.5)+" Wh")
     time.sleep(15)
