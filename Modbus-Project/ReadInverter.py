@@ -15,7 +15,6 @@ except:
     exit()
 MAC_Address_Register = 40497
 
-
 class sma_EnergyMeter:
     def __init__(self):
         print("created sma_Energymeter"+str(self))
