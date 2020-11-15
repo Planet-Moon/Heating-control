@@ -4,6 +4,12 @@ import time
 import configparser
 import telepot
 from telepot.loop import MessageLoop
+import telepot.api
+import urllib3
+telepot.api._pools = {
+    'default': urllib3.PoolManager(num_pools=3, maxsize=10, retries=3, timeout=30),
+}
+telepot.api._onetime_pool_spec = (urllib3.PoolManager, dict(num_pools=1, maxsize=1, retries=3, timeout=30))
 
 ModbusTargetIP = "192.168.178.114"
 client = ModbusClient(ModbusTargetIP)
