@@ -12,22 +12,20 @@ telepot.api._pools = {
 }
 telepot.api._onetime_pool_spec = (urllib3.PoolManager, dict(num_pools=1, maxsize=1, retries=3, timeout=30))
 
-ModbusTargetIP = "192.168.178.114"
-client = ModbusClient(ModbusTargetIP)
-try:
-    client.connect()
-    print("Connected!")
-except:
-    print("Connection failed!")
-    exit()
-MAC_Address_Register = 40497
-
 class sma_EnergyMeter:
     def __init__(self):
         print("created sma_Energymeter"+str(self))
 
 class sma_Inverter:
-    def __init__(self):
+    def __init__(self, ipAddress):
+        self.ipAddress = ipAddress
+        self.client = ModbusClient(self.ipAddress)
+        try:
+            self.client.connect()
+            print("Connected!")
+        except:
+            print("Connection failed!")
+            exit()
         self.serialnumber = 0
         self.susyID = 0
         self.UnitID = 1
@@ -37,21 +35,21 @@ class sma_Inverter:
         self.todayEnergy = 0 # Wh
         self.timeZone = 0
 
-        self.UnitID_Register = modbus_register(42109,4,1)
-        self.MACAddress_Register = modbus_register(40497,1,self.UnitID)
-        self.Model_Register = modbus_register(30053,2,self.UnitID)
+        self.UnitID_Register = modbus_register(self.client,42109,4,1)
+        self.MACAddress_Register = modbus_register(self.client,40497,1,self.UnitID)
+        self.Model_Register = modbus_register(self.client,30053,2,self.UnitID)
         self.get_pysical_data()
 
-        self.operationHealth_Register = modbus_register(30201,2,self.UnitID)
+        self.operationHealth_Register = modbus_register(self.client,30201,2,self.UnitID)
         self.get_operationHealth()
 
-        self.totalPower_Register = modbus_register(30775,2,self.UnitID)
+        self.totalPower_Register = modbus_register(self.client,30775,2,self.UnitID)
         self.get_totalPower()
 
-        self.todayEnergy_Register = modbus_register(30535,2,self.UnitID)
+        self.todayEnergy_Register = modbus_register(self.client,30535,2,self.UnitID)
         self.get_todayEnergy()
 
-        self.timeZone_Register = modbus_register(40003,2,self.UnitID)
+        self.timeZone_Register = modbus_register(self.client,40003,2,self.UnitID)
         self.get_timeZone()
 
     def get_pysical_data(self):
@@ -85,7 +83,8 @@ class sma_Inverter:
         return self.timeZone
 
 class modbus_register:
-    def __init__(self,address,length,unitID):
+    def __init__(self,client,address,length,unitID):
+        self.client = client
         self.address = address
         self.length = length
         self.unitID = unitID
@@ -93,8 +92,7 @@ class modbus_register:
         self.data = []    
 
     def read(self):
-        global client
-        self.response = client.read_holding_registers(self.address,count=self.length, unit=self.unitID)
+        self.response = self.client.read_holding_registers(self.address,count=self.length, unit=self.unitID)
         return self.response
 
     def get_data(self):
@@ -137,7 +135,8 @@ TelegramBot()
 
 MyEnergyMeter = sma_EnergyMeter()
 
-MyInverter = sma_Inverter()
+InverterIP = "192.168.178.114"
+MyInverter = sma_Inverter(InverterIP)
 print("MyInverter.serialnumber: "+str(MyInverter.serialnumber))
 print("MyInverter.operationHealth: "+str(MyInverter.operationHealth))
 
