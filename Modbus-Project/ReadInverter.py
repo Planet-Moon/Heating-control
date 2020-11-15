@@ -2,6 +2,7 @@
 from pymodbus.client.sync import ModbusTcpClient as ModbusClient
 import time
 import configparser
+import datetime
 import telepot
 from telepot.loop import MessageLoop
 import telepot.api
@@ -108,7 +109,7 @@ def handle(msg):
     global bot
     chat_id = msg['chat']['id']
     command = msg['text']
-    print ('Got command: '+str(command))
+    print(str(datetime.datetime.now())+': Got command: '+str(command))
 
     if command == "/power":
         bot.sendMessage(chat_id, str(MyInverter.get_totalPower())+" W")
