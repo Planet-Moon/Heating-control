@@ -157,6 +157,11 @@ def handle(msg):
         elif command == "/all":
             send_string = "Power: "+str(MyInverter.get_data("totalPower"))+" W\nEnergy: "+ str(MyInverter.get_data("todayEnergy"))+" Wh"
             bot.sendMessage(chat_id, send_string)
+
+        elif command == "/ip ":
+            ip = msg["text"][2:]
+            pass
+
     except:
         bot.sendMessage(chat_id, "Error reading modbus")
 
