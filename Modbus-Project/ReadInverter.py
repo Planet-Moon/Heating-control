@@ -14,16 +14,18 @@ telepot.api._pools = {
 }
 telepot.api._onetime_pool_spec = (urllib3.PoolManager, dict(num_pools=1, maxsize=1, retries=3, timeout=30))
 
-def word_to_uint32(word): #little endian
+def word_to_uint32(word): #big endian
     return word[0]*65536 + word[1]
 
 def word_to_int32(word): #little endian
-    word = word_to_uint32(word)
-    if word & 0x80000000:
-        word = -1 * (word & 0x7FFFFFFF)/2
-    else: 
-        word = floor((word & 0x7FFFFFFF)/2)
-    return word
+    word1 = word_to_uint32(word)
+    if word1 & 0x80000000:
+        positive = False
+        word2 = -1*0x80000000 + (word1 & 0x7FFFFFFF)
+    else:
+        positive = True
+        word2 = word1 & 0x7FFFFFFF
+    return floor(word2)
 
 class sma_EnergyMeter:
     def __init__(self):
@@ -201,5 +203,4 @@ while True:
     # print("Current Power * 3.5: "+str(current_power * 3.5)+" W")
     # print("Energy today: "+str(MyInverter.get_todayEnergy())+" Wh")
     # print("System Energy today: "+str(MyInverter.get_todayEnergy() * 3.5)+" Wh")
-    print("uint {}".format(byte_to_uint16([32768,1])))
     time.sleep(15)
