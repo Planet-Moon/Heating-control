@@ -4,6 +4,7 @@ import time
 import configparser
 import argparse
 from math import floor
+from datetime import datetime
 import telepot
 from telepot.loop import MessageLoop
 import telepot.api
@@ -135,7 +136,7 @@ class modbus_register:
             return
 
 def current_time():
-    return datetime.datetime.now()
+    return datetime.now()
 
 def handle(msg):
     global bot
