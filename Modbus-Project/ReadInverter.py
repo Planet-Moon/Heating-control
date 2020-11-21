@@ -2,7 +2,7 @@
 from pymodbus.client.sync import ModbusTcpClient as ModbusClient
 import time
 import configparser
-import datetime
+from math import floor
 import telepot
 from telepot.loop import MessageLoop
 import telepot.api
@@ -11,6 +11,17 @@ telepot.api._pools = {
     'default': urllib3.PoolManager(num_pools=3, maxsize=10, retries=3, timeout=30),
 }
 telepot.api._onetime_pool_spec = (urllib3.PoolManager, dict(num_pools=1, maxsize=1, retries=3, timeout=30))
+
+def word_to_uint32(word): #little endian
+    return word[0]*65536 + word[1]
+
+def word_to_int32(word): #little endian
+    word = word_to_uint32(word)
+    if word & 0x80000000:
+        word = -1 * (word & 0x7FFFFFFF)/2
+    else: 
+        word = floor((word & 0x7FFFFFFF)/2)
+    return word
 
 class sma_EnergyMeter:
     def __init__(self):
@@ -55,33 +66,27 @@ class sma_Inverter:
             self.serialnumber = UnitID_response[0]*65536 + UnitID_response[1]
             self.susyID = UnitID_response[2]
             self.UnitID = UnitID_response[3]
-            Model_response = self.Model_Register.get_data()
-            self.Model = Model_response[0]*65536 + Model_response[1]
+            self.Model = word_to_uint32(Model_response)
             if dataName != "all":
                 return UnitID_response
 
         elif dataName == "operationHealth" or dataName == "all":
-            operationHealth_response = self.operationHealth_Register.get_data()
-            self.operationHealth = operationHealth_response[0]*65536 + operationHealth_response[1]
+            self.operationHealth = word_to_uint32(operationHealth_response)
             if dataName != "all":
                 return self.operationHealth
 
         elif dataName == "totalPower" or dataName == "all":
-            totalPower_response_byte = self.totalPower_Register.get_data()
-            totalPower_response_word = totalPower_response_byte[0] * 65536 + totalPower_response_byte[1]
-            self.totalPower = -1 * (totalPower_response_word&0x7FFFFFFF)/2 if totalPower_response_word & 0x80000000 else (totalPower_response_word&0x7FFFFFFF)/2
+            self.totalPower = word_to_int32(totalPower_response_byte)
             if dataName != "all":
                 return self.totalPower
 
         elif dataName == "todayEnergy" or dataName == "all":
-            todayEnergy_response = self.todayEnergy_Register.get_data()
-            self.todayEnergy = todayEnergy_response[0] * 65536 + todayEnergy_response[1]
+            self.todayEnergy = word_to_uint32(todayEnergy_response)
             if dataName != "all":
                 return self.todayEnergy
 
         elif dataName == "timeZone" or dataName == "all":
-            timeZone_response = self.timeZone_Register.get_data()
-            self.timeZone = timeZone_response[0] * 65536 + timeZone_response[1]
+            self.timeZone = word_to_uint32(timeZone_response)
             if dataName != "all":
                 return self.timeZone
 
@@ -164,4 +169,5 @@ while True:
     # print("Current Power * 3.5: "+str(current_power * 3.5)+" W")
     # print("Energy today: "+str(MyInverter.get_todayEnergy())+" Wh")
     # print("System Energy today: "+str(MyInverter.get_todayEnergy() * 3.5)+" Wh")
+    print("uint {}".format(byte_to_uint16([32768,1])))
     time.sleep(15)
