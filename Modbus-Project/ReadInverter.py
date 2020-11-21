@@ -46,6 +46,8 @@ class sma_Inverter:
         try: 
             self.get_data("all")
         except Exception as e:
+            print(str(current_time())+": Error - Initialisation of "+self.ipAddress+" failed!, "+str(e))
+
     def _connect_IP(self):
         self.client = ModbusClient(self.ipAddress)
         try:
@@ -133,7 +135,8 @@ class modbus_register:
             self.data = self.response.registers
             return self.data
         except:
-            return
+            print("Error reading "+str(self.client.host)+", register "+str(self.address))
+        pass
 
 def current_time():
     return datetime.now()
