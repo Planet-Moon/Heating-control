@@ -2,6 +2,7 @@
 from pymodbus.client.sync import ModbusTcpClient as ModbusClient
 import time
 import configparser
+import argparse
 from math import floor
 import telepot
 from telepot.loop import MessageLoop
@@ -167,10 +168,18 @@ def TelegramBot(modbusClient):
     print("Bot is listening ...")
 
 
+parser = argparse.ArgumentParser(description='SMA Inverter Modbus reader.')
+parser.add_argument("-ip", help="ipAddress of the Inverter")
+args = parser.parse_args()
+
 MyEnergyMeter = sma_EnergyMeter()
 
-InverterIP = "192.168.178.114"
-MyInverter = sma_Inverter(InverterIP)
+defaultInverterIP = "192.168.178.114"
+if not args.ip:
+    InverterIp = defaultInverterIP
+else: 
+    InverterIp = args.ip
+MyInverter = sma_Inverter(InverterIp)
 print("MyInverter.serialnumber: "+str(MyInverter.serialnumber))
 print("MyInverter.operationHealth: "+str(MyInverter.operationHealth))
 
