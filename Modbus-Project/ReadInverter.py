@@ -41,10 +41,10 @@ def handle(msg):
             send_string =  MyInverter.modbus.read_string("LeistungBezug")
 
         elif command == "/delta":
-            send_string =  MyInverter.modbus.get_deltaPower()
+            send_string =  MyInverter.get_deltaPower()
 
         elif command == "/all":
-            send_string = MyInverter.modbus.read_string("totalPower")+"\n"+MyInverter.modbus.read_string("todayEnergy")
+            send_string = MyInverter.read_all()
         
         elif command == "/ip":
             send_string = "IP Address: "+str(MyInverter.ipAddress)
