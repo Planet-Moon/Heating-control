@@ -13,28 +13,6 @@ class modbus_device(object):
             exit()
 
         self.register = {}
-
-        self.newRegister("UnitID", address=42109, length=4)
-        UnitID_response = self.read("UnitID")
-        self.physicalSerialNumber = TC.list_to_number([UnitID_response[0], UnitID_response[1]], signed=False)
-        self.physicalSusyID = UnitID_response[2]
-        self.UnitID = UnitID_response[3]
-
-        self.newRegister("SUSyIDModule", address=30003, length=2, signed=False)
-        self.SUSyIDModule = self.read_value("SUSyIDModule")
-        
-        self.newRegister("serialnumber", address=30057, length=2, signed=False)
-        self.serialnumber = self.read_value("serialnumber")
-
-        self.newRegister("NameplateSerialnumber", address=30057, length=2, signed=False)
-        self.NameplateSerialnumber = self.read_value("NameplateSerialnumber")
-
-        self.newRegister("Model", address=30053, length=2, signed=False)
-        self.Model = self.read_value("Model")
-
-        self.newRegister("FirmwareVersion", address=40063, length=2, signed=False)
-        self.FirmwareVersion = self.read_value("FirmwareVersion")
-
         pass
 
     def newRegister(self, name, address, length, signed=False, unit=""):

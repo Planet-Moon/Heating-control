@@ -34,6 +34,28 @@ class sma_Inverter:
         self._Init_Modbus_Registers()
 
     def _Init_Modbus_Registers(self):        
+
+        self.modbus.newRegister("UnitID", address=42109, length=4)
+        UnitID_response = self.modbus.read("UnitID")
+        self.modbus.physicalSerialNumber = TC.list_to_number([UnitID_response[0], UnitID_response[1]], signed=False)
+        self.modbus.physicalSusyID = UnitID_response[2]
+        self.modbus.UnitID = UnitID_response[3]
+
+        self.modbus.newRegister("SUSyIDModule", address=30003, length=2, signed=False)
+        self.modbus.SUSyIDModule = self.modbus.read_value("SUSyIDModule")
+        
+        self.modbus.newRegister("serialnumber", address=30057, length=2, signed=False)
+        self.modbus.serialnumber = self.modbus.read_value("serialnumber")
+
+        self.modbus.newRegister("NameplateSerialnumber", address=30057, length=2, signed=False)
+        self.modbus.NameplateSerialnumber = self.modbus.read_value("NameplateSerialnumber")
+
+        self.modbus.newRegister("Model", address=30053, length=2, signed=False)
+        self.modbus.Model = self.modbus.read_value("Model")
+
+        self.modbus.newRegister("FirmwareVersion", address=40063, length=2, signed=False)
+        self.modbus.FirmwareVersion = self.modbus.read_value("FirmwareVersion")
+
         self.modbus.newRegister("operationHealth", address=30201, length=2)
         self.modbus.newRegister("totalPower", address=30775, length=2, unit=" W")
         self.modbus.newRegister("todayEnergy", address=30535, length=2, unit=" Wh")
