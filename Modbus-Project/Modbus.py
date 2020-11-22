@@ -27,19 +27,24 @@ class modbus_device(object):
 
     def read_value(self, name):
         try:
-            return TC.list_to_number(self.read(name), signed=self.register[name].signed)
+            value = TC.list_to_number(self.read(name), signed=self.register[name].signed)
+            self.register[name].value = value
+            return value
         except:
             print("Error reading value from register "+name) 
 
     def read_string(self, name):
         value = self.read_value(name)
         unit = self.register[name].unit
-        return name+": "+str(value)+unit
+        string = name+": "+str(value)+unit
+        self.register[name].string = string
+        return string
 
     def read_all(self):
         ret_val = []
         for i in self.register:
-            ret_val.append([i, self.read_value(i)])
+            if self.register[i].unit :
+                ret_val.append([i, self.read_value(i), self.register[i].unit])
             pass
         pass
         return ret_val
