@@ -26,6 +26,8 @@ class sma_Inverter:
             self.get_data("all")
         except Exception as e:
             print(str(current_time())+": Error - Initialisation of "+self.ipAddress+" failed!, "+str(e))
+
+        self.read_all()
         pass
 
     def _connect_IP(self):
@@ -33,7 +35,7 @@ class sma_Inverter:
         
         self._Init_Modbus_Registers()
 
-    def _Init_Modbus_Registers(self):        
+    def _Init_Modbus_Registers(self):
 
         self.modbus.newRegister("UnitID", address=42109, length=4)
         UnitID_response = self.modbus.read("UnitID")
@@ -80,4 +82,12 @@ class sma_Inverter:
     def get_deltaPower(self):
         value = self.modbus.read_value("LeistungEinspeisung") - self.modbus.read_value("LeistungBezug")
         string = "Delta: {}{}".format(value, self.modbus.register["LeistungEinspeisung"].unit)
+        return string
+
+    def read_all(self):
+        data = self.modbus.read_all()
+        interString = []
+        for i in data:
+            interString.append("{}: {}{}".format(*i)) 
+        string = "\n".join(interString)
         return string
