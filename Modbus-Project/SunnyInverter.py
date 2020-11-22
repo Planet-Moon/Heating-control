@@ -59,7 +59,7 @@ class sma_Inverter:
         self.modbus.FirmwareVersion = self.modbus.read_value("FirmwareVersion")
 
         self.modbus.newRegister("operationHealth", address=30201, length=2)
-        self.modbus.newRegister("totalPower", address=30775, length=2, unit=" W")
+        self.modbus.newRegister("totalPower", address=30775, length=2, signed=True, unit=" W")
         self.modbus.newRegister("todayEnergy", address=30535, length=2, unit=" Wh")
         self.modbus.newRegister("timeZone", address=40003, length=2)
 
