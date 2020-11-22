@@ -37,8 +37,8 @@ class modbus_device(object):
 
         pass
 
-    def newRegister(self, name, address, length, signed=False):
-        self.register[name] = self.modbus_register(address, length, signed)
+    def newRegister(self, name, address, length, signed=False, unit=""):
+        self.register[name] = self.modbus_register(address, length, signed, unit)
         self.read(name)
 
     def read(self, name):
@@ -53,6 +53,11 @@ class modbus_device(object):
         except:
             print("Error reading value from register "+name) 
 
+    def read_string(self, name):
+        value = self.read_value(name)
+        unit = self.register[name].unit
+        return name+": "+str(value)+unit
+
     def read_all(self):
         ret_val = []
         for i in self.register:
@@ -62,13 +67,14 @@ class modbus_device(object):
         return ret_val
 
     class modbus_register:
-        def __init__(self, address, length, signed):
+        def __init__(self, address, length, signed, unit):
             self.address = address
             self.length = length
             self.response = []
             self.data = []
             self.error = 0
             self.signed = signed
+            self.unit = unit
 
         def read(self,client, unitID):
             self.error = 0

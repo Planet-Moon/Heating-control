@@ -29,19 +29,19 @@ def handle(msg):
     try:
         send_string = "not recognized command"
         if command == "/power":
-            send_string = str(MyInverter.get_data("totalPower"))+" W"
+            send_string = MyInverter.modbus.read_string("totalPower")
 
         elif command == "/energy":
-            send_string =  str(MyInverter.get_data("todayEnergy"))+" Wh"
+            send_string =  MyInverter.modbus.read_string("todayEnergy")
 
         elif command == "/einspeisung":
-            send_string =  str(MyInverter.get_data("LeistungEinspeisung"))+" W"
+            send_string =  MyInverter.modbus.read_string("LeistungEinspeisung")
 
         elif command == "/bezug":
-            send_string =  str(MyInverter.get_data("LeistungBezug"))+" W"
+            send_string =  MyInverter.modbus.read_string("LeistungBezug")
 
         elif command == "/all":
-            send_string = "Power: "+str(MyInverter.get_data("totalPower"))+" W\nEnergy: "+ str(MyInverter.get_data("todayEnergy"))+" Wh"
+            send_string = MyInverter.modbus.read_string("totalPower")+"\n"+MyInverter.modbus.read_string("todayEnergy")
         
         elif command == "/ip":
             send_string = "IP Address: "+str(MyInverter.ipAddress)

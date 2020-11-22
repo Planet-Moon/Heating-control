@@ -35,12 +35,12 @@ class sma_Inverter:
 
     def _Init_Modbus_Registers(self):        
         self.modbus.newRegister("operationHealth", address=30201, length=2)
-        self.modbus.newRegister("totalPower", address=30775, length=2)
-        self.modbus.newRegister("todayEnergy", address=30535, length=2)
+        self.modbus.newRegister("totalPower", address=30775, length=2, unit=" W")
+        self.modbus.newRegister("todayEnergy", address=30535, length=2, unit=" Wh")
         self.modbus.newRegister("timeZone", address=40003, length=2)
-        self.modbus.newRegister("LeistungEinspeisung", address=30867, length=2, signed=True)
+        self.modbus.newRegister("LeistungEinspeisung", address=30867, length=2, signed=True, unit=" W")
         self.LeistungEinspeisung = self.modbus.read_value("LeistungEinspeisung")
-        self.modbus.newRegister("LeistungBezug", address=30865, length=2, signed=True)
+        self.modbus.newRegister("LeistungBezug", address=30865, length=2, signed=True, unit=" W")
         self.LeistungBezug = self.modbus.read_value("LeistungBezug")
         self.modbus.read_all()
         pass
