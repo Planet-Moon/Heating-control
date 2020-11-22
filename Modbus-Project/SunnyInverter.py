@@ -76,3 +76,8 @@ class sma_Inverter:
             return self.modbus.read_all()
         else:
             return [[dataName, self.modbus.read_value(dataName)]]
+
+    def get_deltaPower(self):
+        value = self.modbus.read_value("LeistungEinspeisung") - self.modbus.read_value("LeistungBezug")
+        string = "Delta: {}{}".format(value, self.modbus.register["LeistungEinspeisung"].unit)
+        return string
