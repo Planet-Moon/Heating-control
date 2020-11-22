@@ -3,6 +3,8 @@ from SunnyInverter import sma_Inverter
 import time
 import configparser
 import argparse
+import json
+import os.path
 from datetime import datetime
 import telepot
 from telepot.loop import MessageLoop
@@ -21,10 +23,24 @@ def current_time():
     return datetime.now()
 
 def handle(msg):
-    global bot
+    global bot, data, dataFileName
     chat_id = msg['chat']['id']
     command = msg['text']
     print(str(current_time())+': Got command: '+str(command))
+
+    client_missing = False
+    for i in data["clients"]:
+        if not i["id"] == msg['chat']['id']:
+            client_missing = True
+
+    if len(data["clients"]) == 0:
+        client_missing = True
+        
+    if client_missing:
+        data["clients"].append({"id": msg['chat']['id'], "name": msg['chat']['first_name']+" "+msg['chat']['last_name'], "timeAdded": msg["date"]})
+        with open(dataFileName, "w") as outfile:
+            print(data)
+            json.dump(data, outfile)
 
     try:
         send_string = "not recognized command"
@@ -83,6 +99,12 @@ print("MyInverter.operationHealth: "+str(MyInverter.operationHealth))
 
 bot = ""
 TelegramBot(MyInverter)
+data = {}
+data["clients"] = []
+dataFileName = "data.json"
+with open(dataFileName) as json_file:
+    data = json.load(json_file)
+    pass
 
 while True:
     # current_power = MyInverter.get_totalPower()
