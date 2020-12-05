@@ -4,7 +4,7 @@ from time import sleep
 
 testList = TC.number_to_wordList(1290)
 
-ModbusServer = modbus_device("192.168.178.43", "502")
+ModbusServer = modbus_device("127.0.0.1", "502")
 ModbusServer.newRegister("test1", address=0, length=4)
 ModbusServer.newRegister("write", address=90, length=2)
 ModbusServer.newRegister("all", address=0, length=125)
