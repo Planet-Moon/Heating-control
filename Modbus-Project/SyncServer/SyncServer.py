@@ -88,10 +88,10 @@ def run_server():
     #     store = ModbusSlaveContext(..., zero_mode=True)
     # ----------------------------------------------------------------------- #
     store = ModbusSlaveContext(
-        di=ModbusSequentialDataBlock(0, [17]*100),
-        co=ModbusSequentialDataBlock(0, [17]*100),
-        hr=ModbusSequentialDataBlock(0, [17]*100),
-        ir=ModbusSequentialDataBlock(0, [17]*100))
+        di=ModbusSequentialDataBlock(0, [17]*129),
+        co=ModbusSequentialDataBlock(0, [17]*129),
+        hr=ModbusSequentialDataBlock(0, [17]*129),
+        ir=ModbusSequentialDataBlock(0, [17]*129))
 
     context = ModbusServerContext(slaves=store, single=True)
 
@@ -112,7 +112,7 @@ def run_server():
     # run the server you want
     # ----------------------------------------------------------------------- #
     # Tcp:
-    StartTcpServer(context, identity=identity, address=("", 5020))
+    StartTcpServer(context, identity=identity, address=("", 502))
     #
     # TCP with different framer
     # StartTcpServer(context, identity=identity,

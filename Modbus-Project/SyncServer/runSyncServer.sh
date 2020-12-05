@@ -1,0 +1,1 @@
+nohupSyncServer python3 -O ./SyncServer.py & 
