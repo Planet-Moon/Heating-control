@@ -49,7 +49,6 @@ class modbus_device(object):
 
     def write_register(self, name, value):
         try:
-            # value = TC.number_to_list(value)
             self.register[name].write(self.client, value, self.UnitID)
         except:
             print("Error writing register "+name+" with value "+str(value)) 
@@ -100,7 +99,10 @@ class modbus_device(object):
             pass
 
         def write(self, client, value, unitID):
-            if not len(value) > self.length:
-                rq = client.write_registers(self.address, value, unit=unitID)
+            if isinstance(value, list):
+                if not len(value) > self.length:
+                    rq = client.write_registers(self.address, value, unit=unitID)
+                else:
+                    raise Exception("Value too long for register. length = "+str(self.length)) 
             else:
-                raise Exception("Value too long for register. length = "+str(self.length)) 
+                rq = client.write_registers(self.address, value, unit=unitID)
