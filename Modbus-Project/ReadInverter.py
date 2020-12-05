@@ -74,6 +74,9 @@ def TelegramBot(modbusClient):
     global bot
     config = configparser.RawConfigParser()
     configFilePath = "telegrambot.cfg"
+    if __debug__:
+        configFilePath = "Modbus-Project/"+configFilePath
+    print("configFilePath: "+configFilePath)
     readConfig = config.read(configFilePath)
     bot_token = config.get("telegrambot","token")
     bot = telepot.Bot(bot_token)
@@ -102,6 +105,9 @@ TelegramBot(MyInverter)
 data = {}
 data["clients"] = []
 dataFileName = "data.json"
+if __debug__:
+    dataFileName = "Modbus-Project/"+dataFileName
+
 with open(dataFileName) as json_file:
     data = json.load(json_file)
     pass
