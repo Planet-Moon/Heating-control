@@ -28,13 +28,15 @@ def handle(msg):
     command = msg['text']
     print(str(current_time())+': Got command: '+str(command))
 
-    client_missing = False
-    for i in data["clients"]:
-        if not i["id"] == msg['chat']['id']:
-            client_missing = True
+    client_missing = True
 
     if len(data["clients"]) == 0:
         client_missing = True
+
+    for i in data["clients"]:
+        if i["id"] == msg['chat']['id']:
+            client_missing = False
+            break
         
     if client_missing:
         data["clients"].append({"id": msg['chat']['id'], "name": msg['chat']['first_name']+" "+msg['chat']['last_name'], "timeAdded": msg["date"]})
@@ -103,13 +105,14 @@ print("MyInverter.operationHealth: "+str(MyInverter.operationHealth))
 bot = ""
 TelegramBot(MyInverter)
 data = {}
-data["clients"] = []
 dataFileName = "data.json"
 if __debug__:
     dataFileName = "Modbus-Project/"+dataFileName
 
 with open(dataFileName) as json_file:
     data = json.load(json_file)
+    if not data:
+        data["clients"] = []
     pass
 
 while True:

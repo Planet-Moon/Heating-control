@@ -16,3 +16,16 @@ def list_to_number(number, length=2, signed=False): #little endian
         else:
             signed_Number = unsigned_number & ~mask
         return signed_Number
+
+def number_to_byteList(number, signed=False):
+    numberInternal = number
+    needBytes = 0
+    testValue = 0
+    returnList = []
+    while testValue < number:
+        needBytes += 1
+        testValue = 2**(8*needBytes)
+        returnList.append(round(numberInternal % 256))
+        numberInternal = numberInternal / 256
+        pass
+    return returnList
