@@ -30,9 +30,6 @@ def handle(msg):
 
     client_missing = True
 
-    if len(data["clients"]) == 0:
-        client_missing = True
-
     for i in data["clients"]:
         if i["id"] == msg['chat']['id']:
             client_missing = False
