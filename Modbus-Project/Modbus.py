@@ -2,14 +2,14 @@ from pymodbus.client.sync import ModbusTcpClient as ModbusClient
 import TypeConversion as TC
 
 class modbus_device(object):
-    def __init__(self, ipAddress, port=""):
+    def __init__(self, ipAddress, port="", unitID=1):
         self.ipAddress = ipAddress
         self.port = port
         if self.port:
             self.client = ModbusClient(self.ipAddress, port=self.port)
         else:
             self.client = ModbusClient(self.ipAddress)
-        self.UnitID = 1
+        self.UnitID = unitID
         self.connect()
         self.register = {}
         pass
@@ -29,9 +29,9 @@ class modbus_device(object):
         except:
             print("Connection could not be closed!")
 
-    def newRegister(self, name, address, length, signed=False, unit=""):
-        self.register[name] = self.modbus_register(address, length, signed, unit)
-        self.read(name)
+    def newRegister(self, name, address, length, signed=False, factor=1, unit=""):
+        self.register[name] = self.modbus_register(address, length, signed, factor, unit)
+        self.read(name) # Init values
 
     def read(self, name):
         try:
@@ -41,7 +41,7 @@ class modbus_device(object):
 
     def read_value(self, name):
         try:
-            value = TC.list_to_number(self.read(name), signed=self.register[name].signed)
+            value = TC.list_to_number(self.read(name), signed=self.register[name].signed) * self.register[name].factor
             self.register[name].value = value
             return value
         except:
@@ -64,19 +64,20 @@ class modbus_device(object):
         ret_val = []
         for i in self.register:
             if self.register[i].unit :
-                ret_val.append([i, self.read_value(i), self.register[i].unit])
+                ret_val.append([i, round(self.read_value(i),2), self.register[i].unit])
             pass
         pass
         return ret_val
 
     class modbus_register:
-        def __init__(self, address, length, signed, unit):
+        def __init__(self, address, length, signed, factor, unit):
             self.address = address
             self.length = length
             self.response = []
             self.data = []
             self.error = 0
             self.signed = signed
+            self.factor = factor
             self.unit = unit
 
         def read(self, client, unitID):
