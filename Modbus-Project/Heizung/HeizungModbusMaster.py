@@ -13,7 +13,7 @@ import urllib3
 
 def readConfig(configFilePath):
     global bot_token, modbusServerIP, modbusServerPort, modbusServerRegister, dataFileName, args
-    config = configparser.RawConfigParser()
+    config = configparser.RawConfigParser(inline_comment_prefixes="#")
     readConfig = config.read(configFilePath)
 
     if not args.noBot:

@@ -71,7 +71,7 @@ def handle(msg):
 
 def TelegramBot(modbusClient):
     global bot
-    config = configparser.RawConfigParser()
+    config = configparser.RawConfigParser(inline_comment_prefixes="#")
     configFilePath = "telegrambot.cfg"
     if __debug__:
         configFilePath = "Modbus-Project/"+configFilePath
