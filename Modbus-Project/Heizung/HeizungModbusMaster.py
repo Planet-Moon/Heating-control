@@ -89,8 +89,9 @@ def telegramBotHandle(msg):
         bot.sendMessage(chat_id, "Error reading modbus")
 
 def main():
-    global HeizungModbusServer, registerData
+    global HeizungModbusServer, registerData, args
     parser = argparse.ArgumentParser(description='SMA Inverter Modbus reader.')
+    parser.add_argument("--noBot", help="Don't run telegramBot", action="store_true")
     args = parser.parse_args()
     readConfig("config.cfg")
 
@@ -100,13 +101,16 @@ def main():
         HeizungModbusServer.read_string(name=i["name"])        
     
     dataJsonInit()
-
-    telegramBotInit()
+    if not args.noBot:
+        telegramBotInit()
     pass
 
 if __name__ == "__main__":
     if __debug__:
         chdir("Modbus-Project/Heizung")
     main()
-    while True:
+    while not args.noBot:
         sleep(20)
+    if args.noBot:
+        print(str(HeizungModbusServer.read_all()))
+        print("Done.")
