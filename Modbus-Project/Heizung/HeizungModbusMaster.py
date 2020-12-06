@@ -10,6 +10,7 @@ import telepot
 from telepot.loop import MessageLoop
 import telepot.api
 import urllib3
+from re import findall as RegexFindAll
 
 def readConfig(configFilePath):
     global bot_token, modbusServerIP, modbusServerPort, modbusServerRegister, dataFileName, args
@@ -54,24 +55,33 @@ def dataJsonInit():
         with open(dataFileName) as json_file:
             data = json.load(json_file)
             if not data:
-                data["clients"] = []
+                data["clients"] = {}
+            pass
     except:
         data = {}
+        data["clients"] = {}
+        pass
+    pass
+
+def writeJSON(fileName, data):
+    try:
+        with open(fileName, "w") as outfile:
+            json.dump(data, outfile)
+        pass
+    except:
+        print("Error writing to file" + Exception)
 
 def clientsHandle(msg):
     global data, dataFileName
     client_missing = True
 
-    for i in data["clients"]:
-        if i["id"] == msg['chat']['id']:
-            client_missing = False
-            break
+    if str(msg['chat']['id']) in data["clients"]:
+        client_missing = False
         
     if client_missing:
-        data["clients"].append({"id": msg['chat']['id'], "name": msg['chat']['first_name']+" "+msg['chat']['last_name'], "timeAdded": msg["date"]})
-        with open(dataFileName, "w") as outfile:
-            print(data)
-            json.dump(data, outfile)
+        data["clients"][str(msg['chat']['id'])] = {"name": msg['chat']['first_name']+" "+msg['chat']['last_name'], "timeAdded": msg["date"]}
+        writeJSON(dataFileName, data)
+    pass
 
 def parseTelegramCommand(messageText):
     messageTextList = messageText.split(" ")
@@ -92,13 +102,16 @@ def parseTelegramCommand(messageText):
     return commandDict
 
 def telegramBotHandle(msg):
-    global bot
+    global bot, data
     chat_id = msg['chat']['id']
-    command = msg['text']
-    print(str(datetime.now())+': Got command: '+str(command))
+    messageText = msg['text']
+    content_type, _, _ = telepot.glance(msg)
+    print(str(datetime.now())+': Got message: '+str(messageText))    
     clientsHandle(msg)
     commandDict = parseTelegramCommand(messageText)
     try: 
+        send_string = ""
+
         if "/all" in commandDict:
             data = HeizungModbusServer.read_all()
             interString = []
@@ -106,9 +119,28 @@ def telegramBotHandle(msg):
                 interString.append("{}: {}{}".format(*i)) 
             send_string = "\n".join(interString)
             pass
+
+        if "/showertemp" in commandDict:
+            if commandDict["/showertemp"]:
+                data["clients"][str(msg['chat']['id'])]["shower"] = {}
+                data["clients"][str(msg['chat']['id'])]["shower"]["temperature"] = round(float(commandDict["/showertemp"]),2)
+                data["clients"][str(msg['chat']['id'])]["shower"]["LastNotification"] = str(datetime.now())
+                writeJSON(dataFileName, data)
+                send_string += "Shower temperature set to "+str(data["clients"][str(msg['chat']['id'])]["shower"]["temperature"])+"°C\n"
+            else:
+                if "shower" in data["clients"][str(msg['chat']['id'])]:
+                    send_string += "Current shower temperature is "+str(data["clients"][str(msg['chat']['id'])]["shower"]["temperature"])+"°C\n"
+                else:
+                    send_string += "No shower temperature set\n"
+            pass
+        
+        if not send_string:
+            send_string = "not recognized command"
+
         bot.sendMessage(chat_id, send_string)
     except:
         bot.sendMessage(chat_id, "Error reading modbus")
+    pass
 
 def argsParse():
     global args
