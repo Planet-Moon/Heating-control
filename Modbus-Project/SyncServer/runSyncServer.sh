@@ -1,1 +1,1 @@
-nohupSyncServer python3 -O ./SyncServer.py & 
+nohup sudo python3 -O ./SyncServer.py & 
