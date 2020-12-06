@@ -73,6 +73,23 @@ def clientsHandle(msg):
             print(data)
             json.dump(data, outfile)
 
+def parseTelegramCommand(messageText):
+    messageTextList = messageText.split(" ")
+    commandDict = {}
+    current_command = ""
+    for i in messageTextList:
+        command_temp = RegexFindAll("^\/\S+", i)
+        if command_temp:
+            current_command = command_temp[0]
+            commandDict[current_command] = {}
+        else:
+            argument_temp = i.split("=")
+            if len(argument_temp) == 2:
+                commandDict[current_command][argument_temp[0]] = argument_temp[1]
+            elif len(argument_temp) == 1:
+                commandDict[current_command] = argument_temp[0]
+            pass
+    return commandDict
 
 def telegramBotHandle(msg):
     global bot
@@ -80,9 +97,9 @@ def telegramBotHandle(msg):
     command = msg['text']
     print(str(datetime.now())+': Got command: '+str(command))
     clientsHandle(msg)
+    commandDict = parseTelegramCommand(messageText)
     try: 
-        send_string = "not recognized command"
-        if command == "/all":
+        if "/all" in commandDict:
             data = HeizungModbusServer.read_all()
             interString = []
             for i in data:
