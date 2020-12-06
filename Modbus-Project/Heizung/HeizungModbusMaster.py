@@ -5,7 +5,7 @@ import configparser
 import argparse
 import json
 from os import path, chdir
-from datetime import datetime
+from datetime import datetime, timedelta, time
 import telepot
 from telepot.loop import MessageLoop
 import telepot.api
@@ -54,7 +54,7 @@ class telegramClientsClass:
         self.clients = {}
         self.fileName = fileName
         self.readFromFile()
-            pass
+        pass
 
     def newClient(self, id, name, timeAdded):
         if not self.clientExists(id):
@@ -68,7 +68,7 @@ class telegramClientsClass:
 
     def readFromFile(self):
         data = None
-    try:
+        try:
             with open(self.fileName, "r") as outfile:
                 data = json.load(outfile)
         except Exception as e:
@@ -84,7 +84,7 @@ class telegramClientsClass:
         try:
             with open(self.fileName, "w") as outfile:
                 json.dump(self, outfile, default=lambda o: o.__dict__, sort_keys=True, indent=4)
-        pass
+            pass
         except Exception as e:
             print("Error writing to file" + str(e))
 
@@ -144,7 +144,7 @@ def telegramBotHandle(msg):
                 currentClient.shower["temperature"] = round(float(commandDict["/showertemp"]),2)
                 currentClient.shower["lastNotified"] = str(datetime.now())
                 send_string += "Shower temperature set to "+str(currentClient.shower["temperature"])+"°C\n"
-                else:
+            else:
                 send_string += "Current shower temperature is "+str(currentClient.shower["temperature"])+"°C\n"
             pass
         
@@ -173,7 +173,6 @@ def main():
         HeizungModbusServer.newRegister(name=i["name"], address=i["address"], length=i["length"], factor=i["factor"], unit=i["unit"])
         HeizungModbusServer.read_string(name=i["name"])        
     
-    dataJsonInit()
     if not args.noBot:
         telegramClients = telegramClientsClass()
         telegramBotInit()
@@ -185,7 +184,28 @@ if __name__ == "__main__":
         chdir("Modbus-Project/Heizung")
     main()
     while not args.noBot:
-        sleep(20)
+        waterTemperature = HeizungModbusServer.read_value("TSP.oben2")
+        for i in telegramClients.clients:
+            if waterTemperature > telegramClients.clients[i].shower["temperature"]:
+                lastNotifiedTime = datetime.strptime(telegramClients.clients[i].shower["lastNotified"],"%Y-%m-%d %H:%M:%S.%f")
+                deltaNotifiedTime = datetime.strptime(telegramClients.clients[i].shower["notifyInterval"],"%H:%M:%S")
+                deltaNotifiedTime = timedelta(hours=deltaNotifiedTime.hour, minutes=deltaNotifiedTime.minute, seconds=deltaNotifiedTime.second)
+                currentTime = datetime.now()
+                timeNextNotify = lastNotifiedTime + deltaNotifiedTime
+                nightMode = False
+
+                if currentTime < datetime.strptime(telegramClients.clients[i].nightModeEnd,"%H:%M:%S"):
+                    nightMode = True
+                elif currentTime > datetime.strptime(telegramClients.clients[i].nightModeStart,"%H:%M:%S"):
+                    nightMode = True
+
+                if timeNextNotify < currentTime and not nightMode:
+                    print("ShowerMessage to "+telegramClients.clients[i].name)
+                    telegramClients.clients[i].shower["lastNotified"] = str(datetime.now())
+                    bot.sendMessage(i, "Safe to shower!")
+                    pass
+        telegramClients.saveToFile()
+        sleep(600)
     if args.noBot:
         print(str(HeizungModbusServer.read_all()))
         print("Done.")
