@@ -12,11 +12,12 @@ import telepot.api
 import urllib3
 
 def readConfig(configFilePath):
-    global bot_token, modbusServerIP, modbusServerRegister, dataFileName
+    global bot_token, modbusServerIP, modbusServerRegister, dataFileName, args
     config = configparser.RawConfigParser()
     readConfig = config.read(configFilePath)
 
-    bot_token = config.get("telegrambot","token")
+    if not args.noBot:
+        bot_token = config.get("telegrambot","token")
 
     modbusServerIP = config.get("modbusServer","ip")
     modbusServerRegisters = config.get("modbusServer","registers")
