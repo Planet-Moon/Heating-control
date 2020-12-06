@@ -49,38 +49,55 @@ def telegramBotInit():
     MessageLoop(bot,telegramBotHandle).run_as_thread()
     print("Bot is listening ...")
 
-def dataJsonInit():
-    global data, dataFileName
-    try:
-        with open(dataFileName) as json_file:
-            data = json.load(json_file)
-            if not data:
-                data["clients"] = {}
+class telegramClientsClass:
+    def __init__(self, fileName="data.json"):
+        self.clients = {}
+        self.fileName = fileName
+        self.readFromFile()
             pass
-    except:
-        data = {}
-        data["clients"] = {}
-        pass
-    pass
 
-def writeJSON(fileName, data):
+    def newClient(self, id, name, timeAdded):
+        if not self.clientExists(id):
+            self.clients[id] = self.telegramChatIDClass(name, timeAdded)
+
+    def clientExists(self, id):
+        if id in self.clients:
+            return True
+        else:
+            return False
+
+    def readFromFile(self):
+        data = None
     try:
-        with open(fileName, "w") as outfile:
-            json.dump(data, outfile)
+            with open(self.fileName, "r") as outfile:
+                data = json.load(outfile)
+        except Exception as e:
+            print("Error reading from file" + str(e))
+        if data:
+            for i in data["clients"]:
+                j = data["clients"][i]
+                self.newClient(id=i, name=j["name"], timeAdded=j["timeAdded"])
+                self.clients[i].shower["temperature"] = j["shower"]["temperature"]
+                self.clients[i].shower["lastNotified"] = j["shower"]["lastNotified"]
+
+    def saveToFile(self):
+        try:
+            with open(self.fileName, "w") as outfile:
+                json.dump(self, outfile, default=lambda o: o.__dict__, sort_keys=True, indent=4)
         pass
-    except:
-        print("Error writing to file" + Exception)
+        except Exception as e:
+            print("Error writing to file" + str(e))
+
+    class telegramChatIDClass:
+        def __init__(self, name, timeAdded):
+            self.name = name
+            self.timeAdded = timeAdded
+            self.nightModeStart = str(time(hour=23))
+            self.nightModeEnd = str(time(hour=6))
+            self.shower = {"temperature": 50, "lastNotified": str(datetime.now()), "notifyInterval": str(timedelta(hours=4, seconds=0)), "ignoreNight": False}
 
 def clientsHandle(msg):
-    global data, dataFileName
-    client_missing = True
-
-    if str(msg['chat']['id']) in data["clients"]:
-        client_missing = False
-        
-    if client_missing:
-        data["clients"][str(msg['chat']['id'])] = {"name": msg['chat']['first_name']+" "+msg['chat']['last_name'], "timeAdded": msg["date"]}
-        writeJSON(dataFileName, data)
+    telegramClients.newClient(id=str(msg['chat']['id']), name=msg['chat']['first_name']+" "+msg['chat']['last_name'],timeAdded=msg["date"])
     pass
 
 def parseTelegramCommand(messageText):
@@ -102,41 +119,39 @@ def parseTelegramCommand(messageText):
     return commandDict
 
 def telegramBotHandle(msg):
-    global bot, data
-    chat_id = msg['chat']['id']
+    global bot
+    chat_id = str(msg['chat']['id'])
     messageText = msg['text']
     content_type, _, _ = telepot.glance(msg)
-    print(str(datetime.now())+': Got message: '+str(messageText))    
     clientsHandle(msg)
     commandDict = parseTelegramCommand(messageText)
+    currentClient = telegramClients.clients[chat_id]
+    print(str(datetime.now())+': Got message: '+str(messageText)+" from chatID "+chat_id)    
+    
     try: 
         send_string = ""
 
         if "/all" in commandDict:
-            data = HeizungModbusServer.read_all()
+            response = HeizungModbusServer.read_all()
             interString = []
-            for i in data:
+            for i in response:
                 interString.append("{}: {}{}".format(*i)) 
             send_string = "\n".join(interString)
             pass
 
         if "/showertemp" in commandDict:
             if commandDict["/showertemp"]:
-                data["clients"][str(msg['chat']['id'])]["shower"] = {}
-                data["clients"][str(msg['chat']['id'])]["shower"]["temperature"] = round(float(commandDict["/showertemp"]),2)
-                data["clients"][str(msg['chat']['id'])]["shower"]["LastNotification"] = str(datetime.now())
-                writeJSON(dataFileName, data)
-                send_string += "Shower temperature set to "+str(data["clients"][str(msg['chat']['id'])]["shower"]["temperature"])+"°C\n"
-            else:
-                if "shower" in data["clients"][str(msg['chat']['id'])]:
-                    send_string += "Current shower temperature is "+str(data["clients"][str(msg['chat']['id'])]["shower"]["temperature"])+"°C\n"
+                currentClient.shower["temperature"] = round(float(commandDict["/showertemp"]),2)
+                currentClient.shower["lastNotified"] = str(datetime.now())
+                send_string += "Shower temperature set to "+str(currentClient.shower["temperature"])+"°C\n"
                 else:
-                    send_string += "No shower temperature set\n"
+                send_string += "Current shower temperature is "+str(currentClient.shower["temperature"])+"°C\n"
             pass
         
         if not send_string:
             send_string = "not recognized command"
 
+        telegramClients.saveToFile()
         bot.sendMessage(chat_id, send_string)
     except:
         bot.sendMessage(chat_id, "Error reading modbus")
@@ -150,7 +165,7 @@ def argsParse():
     args = parser.parse_args()
 
 def main():
-    global HeizungModbusServer, registerData    
+    global HeizungModbusServer, registerData, telegramClients
     readConfig("config.cfg")
 
     HeizungModbusServer = modbus_device(ipAddress=modbusServerIP, port=modbusServerPort)
@@ -160,6 +175,7 @@ def main():
     
     dataJsonInit()
     if not args.noBot:
+        telegramClients = telegramClientsClass()
         telegramBotInit()
     pass
 
