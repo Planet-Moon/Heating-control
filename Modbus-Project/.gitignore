@@ -1,2 +1,6 @@
 *.pyc
 data.json
+telegrambot.cfg
+config.cfg
+nohup.out
+!configTemplate.cfg
