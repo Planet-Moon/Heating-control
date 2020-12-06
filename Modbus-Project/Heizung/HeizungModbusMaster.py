@@ -12,7 +12,7 @@ import telepot.api
 import urllib3
 
 def readConfig(configFilePath):
-    global bot_token, modbusServerIP, modbusServerRegister, dataFileName, args
+    global bot_token, modbusServerIP, modbusServerPort, modbusServerRegister, dataFileName, args
     config = configparser.RawConfigParser()
     readConfig = config.read(configFilePath)
 
@@ -20,6 +20,7 @@ def readConfig(configFilePath):
         bot_token = config.get("telegrambot","token")
 
     modbusServerIP = config.get("modbusServer","ip")
+    modbusServerPort = config.get("modbusServer","port")
     modbusServerRegisters = config.get("modbusServer","registers")
     modbusServerRegisters = modbusServerRegisters.split("\n")
     del modbusServerRegisters[0]
@@ -96,7 +97,7 @@ def main():
     args = parser.parse_args()
     readConfig("config.cfg")
 
-    HeizungModbusServer = modbus_device(modbusServerIP)
+    HeizungModbusServer = modbus_device(ipAddress=modbusServerIP, port=modbusServerPort)
     for i in modbusServerRegister:
         HeizungModbusServer.newRegister(name=i["name"], address=i["address"], length=i["length"], factor=i["factor"], unit=i["unit"])
         HeizungModbusServer.read_string(name=i["name"])        
