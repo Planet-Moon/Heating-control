@@ -20,7 +20,10 @@ def readConfig(configFilePath):
         bot_token = config.get("telegrambot","token")
 
     modbusServerIP = config.get("modbusServer","ip")
-    modbusServerPort = config.get("modbusServer","port")
+    try:
+        modbusServerPort = config.get("modbusServer","port")
+    except:
+        pass
     modbusServerRegisters = config.get("modbusServer","registers")
     modbusServerRegisters = modbusServerRegisters.split("\n")
     del modbusServerRegisters[0]
