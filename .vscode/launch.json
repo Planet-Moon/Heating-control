@@ -17,7 +17,8 @@
             "request": "launch",
             "program": "${workspaceFolder}/Modbus-Project/Heizung/HeizungModbusMaster.py",
             "console": "integratedTerminal",
-            "args": ["--noBot"]
+            //"args": ["--noBot", "--debug"]
+            "args": ["--debug"]
         },
         {
             "name": "readInverter",
