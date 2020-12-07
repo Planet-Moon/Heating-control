@@ -77,16 +77,34 @@ class telegramClientsClass:
             for i in data["clients"]:
                 j = data["clients"][i]
                 self.newClient(id=i, name=j["name"], timeAdded=j["timeAdded"])
-                self.clients[i].shower["temperature"] = j["shower"]["temperature"]
-                self.clients[i].shower["lastNotified"] = j["shower"]["lastNotified"]
+                if "shower" in j:
+                    k = j["shower"]
+                    self.clients[i].shower = self.clients[i].createShowerClass()
+                    m = self.clients[i].shower
+                    m.notifyTemperature=k["notifyTemperature"]
+                    m.nextNotifyTime=k["nextNotifyTime"]
+                    m.notifyInterval=k["notifyInterval"]
+                    m.ignoreNight=k["ignoreNight"]
+                    m.notify=k["notify"]
+                    m.notifyAllowed=k["notifyAllowed"]
+                    m.notifyMessage=k["notifyMessage"]
+                else:
+                    self.clients[i].shower = self.clients[i].createShowerClass()
 
     def saveToFile(self):
         try:
             with open(self.fileName, "w") as outfile:
-                json.dump(self, outfile, default=lambda o: o.__dict__, sort_keys=True, indent=4)
-            pass
+                json.dump(self, outfile, default=self.parseObjJson, sort_keys=True, indent=4, check_circular=True)
+                pass
         except Exception as e:
-            print("Error writing to file" + str(e))
+            print("Error writing to file: " + str(e))
+
+    def parseObjJson(self, Obj):
+        try:
+            retVal = Obj.__dict__
+        except Exception as e:
+            print("Error parsing Object: "+str(e))
+        return retVal
 
     class telegramChatIDClass:
         def __init__(self, name, timeAdded):
@@ -94,10 +112,71 @@ class telegramClientsClass:
             self.timeAdded = timeAdded
             self.nightModeStart = str(time(hour=23))
             self.nightModeEnd = str(time(hour=6))
-            self.shower = {"temperature": 50, "lastNotified": str(datetime.now()), "notifyInterval": str(timedelta(hours=4, seconds=0)), "ignoreNight": False}
+            self.nightTime = self.checkNightTime()
+            pass
+
+        def strToDateTimeObj(self, dateTimeString, simple=False):
+            if not simple:
+                return datetime.strptime(dateTimeString,"%Y-%m-%d %H:%M:%S.%f")
+            else:
+                return datetime.strptime(dateTimeString,"%H:%M:%S")
+
+        def strToDeltaTimeObj(self, deltaTimeSring):
+            _datetime = datetime.strptime(deltaTimeSring,"%H:%M:%S")
+            return timedelta(hours=_datetime.hour, minutes=_datetime.minute, seconds=_datetime.second)
+
+        def checkNightTime(self):
+            currentTime = datetime.now()
+            currentTime = (1900, 1, 1, currentTime.hour, currentTime.minute, currentTime.second)
+            currentTime = datetime(*currentTime)
+            _nightModeStart = self.strToDateTimeObj(self.nightModeStart, True)
+            _nightModeEnd = self.strToDateTimeObj(self.nightModeEnd, True)
+            if currentTime > _nightModeStart or currentTime < _nightModeEnd:
+                self.nightTime = True
+                return True
+            else:
+                self.nightTime = False
+                return False
+
+        def calcNextNotify(self, attrib):
+                deltaNotifiedTime = self.strToDeltaTimeObj(attrib.notifyInterval)
+                currentTime = datetime.now()
+                attrib.nextNotifyTime = str(currentTime + deltaNotifiedTime)
+
+        def checkNotifyAllowed(self, attrib):
+            _nextNotifyTime = self.strToDateTimeObj(attrib.nextNotifyTime)
+            if datetime.now() > _nextNotifyTime:
+                attrib.notifyAllowed = True
+                return True
+            else:
+                attrib.notifyAllowed = False
+                return False
+
+        def notify(self, attrib):
+            if not self.checkNightTime() and attrib.checkNotifyAllowed():
+                print("ShowerMessage to "+self.name)
+                self.calcNextNotify(attrib)
+                return attrib.notifyMessage
+            else:
+                return None
+
+        def createShowerClass(self):
+            self.shower = self.showerClass()
+            self.shower.notifyAllowed = self.checkNotifyAllowed(self.shower)
+            return self.shower
+
+        class showerClass:
+            def __init__(self, notifyTemperature=50, nextNotifyTime=str(datetime.now()), notifyInterval=str(timedelta(hours=4, seconds=0)), ignoreNight=False, notify=True):
+                self.notifyTemperature = notifyTemperature
+                self.nextNotifyTime = nextNotifyTime
+                self.notifyInterval = notifyInterval
+                self.ignoreNight = ignoreNight
+                self.notify = notify
+                self.notifyAllowed = True
+                self.notifyMessage = "Safe to shower!"         
 
 def clientsHandle(msg):
-    telegramClients.newClient(id=str(msg['chat']['id']), name=msg['chat']['first_name']+" "+msg['chat']['last_name'],timeAdded=msg["date"])
+    telegramClients.newClient(id=str(msg['chat']['id']), name=msg['chat']['first_name']+" "+msg['chat']['last_name'], timeAdded=msg["date"])
     pass
 
 def parseTelegramCommand(messageText):
@@ -127,34 +206,36 @@ def telegramBotHandle(msg):
     commandDict = parseTelegramCommand(messageText)
     currentClient = telegramClients.clients[chat_id]
     print(str(datetime.now())+': Got message: '+str(messageText)+" from chatID "+chat_id)    
-    
-    try: 
-        send_string = ""
 
-        if "/all" in commandDict:
+    send_string = ""
+
+    if "/all" in commandDict:
+        try: 
             response = HeizungModbusServer.read_all()
-            interString = []
-            for i in response:
-                interString.append("{}: {}{}".format(*i)) 
-            send_string = "\n".join(interString)
-            pass
+        except:
+            send_string += "Error reading modbus"
+        interString = []
+        for i in response:
+            interString.append("{}: {}{}".format(*i)) 
+        send_string = "\n".join(interString)
+        pass
 
-        if "/showertemp" in commandDict:
-            if commandDict["/showertemp"]:
-                currentClient.shower["temperature"] = round(float(commandDict["/showertemp"]),2)
-                currentClient.shower["lastNotified"] = str(datetime.now())
-                send_string += "Shower temperature set to "+str(currentClient.shower["temperature"])+"°C\n"
-            else:
-                send_string += "Current shower temperature is "+str(currentClient.shower["temperature"])+"°C\n"
-            pass
-        
-        if not send_string:
-            send_string = "not recognized command"
+    if "/showertemp" in commandDict:
+        if not hasattr(currentClient, "shower"):
+            currentClient.createShowerClass()
+        if commandDict["/showertemp"]:
+            currentClient.shower.notifyTemperature = round(float(commandDict["/showertemp"]),2)
+            currentClient.shower.nextNotify = str(datetime.now())
+            send_string += "Shower temperature set to "+str(currentClient.shower.notifyTemperature)+"°C\n"
+        else:
+            send_string += "Current shower temperature is "+str(currentClient.shower.notifyTemperature)+"°C\n"
+        pass
+    
+    if not send_string:
+        send_string = "not recognized command"
 
-        telegramClients.saveToFile()
-        bot.sendMessage(chat_id, send_string)
-    except:
-        bot.sendMessage(chat_id, "Error reading modbus")
+    telegramClients.saveToFile()
+    bot.sendMessage(chat_id, send_string)
     pass
 
 def argsParse():
@@ -183,27 +264,14 @@ if __name__ == "__main__":
     if args.debug:
         chdir("Modbus-Project/Heizung")
     main()
+    print("")
     while not args.noBot:
         waterTemperature = HeizungModbusServer.read_value("TSP.oben2")
         for i in telegramClients.clients:
-            if waterTemperature > telegramClients.clients[i].shower["temperature"]:
-                lastNotifiedTime = datetime.strptime(telegramClients.clients[i].shower["lastNotified"],"%Y-%m-%d %H:%M:%S.%f")
-                deltaNotifiedTime = datetime.strptime(telegramClients.clients[i].shower["notifyInterval"],"%H:%M:%S")
-                deltaNotifiedTime = timedelta(hours=deltaNotifiedTime.hour, minutes=deltaNotifiedTime.minute, seconds=deltaNotifiedTime.second)
-                currentTime = datetime.now()
-                timeNextNotify = lastNotifiedTime + deltaNotifiedTime
-                nightMode = False
-
-                if currentTime < datetime.strptime(telegramClients.clients[i].nightModeEnd,"%H:%M:%S"):
-                    nightMode = True
-                elif currentTime > datetime.strptime(telegramClients.clients[i].nightModeStart,"%H:%M:%S"):
-                    nightMode = True
-
-                if timeNextNotify < currentTime and not nightMode:
-                    print("ShowerMessage to "+telegramClients.clients[i].name)
-                    telegramClients.clients[i].shower["lastNotified"] = str(datetime.now())
-                    bot.sendMessage(i, "Safe to shower!")
-                    pass
+            checkClient = telegramClients.clients[i]
+            if waterTemperature > checkClient.shower.notifyTemperature:
+                checkClient.notify(checkClient.shower)
+                pass
         telegramClients.saveToFile()
         sleep(600)
     if args.noBot:

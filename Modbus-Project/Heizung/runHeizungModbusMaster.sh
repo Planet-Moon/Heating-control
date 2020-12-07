@@ -1,1 +1,1 @@
-nohup python3 -O ./HeizungModbusMaster.py & 
+nohup python3 ./HeizungModbusMaster.py & 
