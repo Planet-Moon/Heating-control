@@ -11,11 +11,12 @@ from telepot.loop import MessageLoop
 import telepot.api
 import urllib3
 from re import findall as RegexFindAll
+import codecs
 
 def readConfig(configFilePath):
     global bot_token, modbusServerIP, modbusServerPort, modbusServerRegister, dataFileName, args
     config = configparser.RawConfigParser(inline_comment_prefixes="#")
-    readConfig = config.read(configFilePath)
+    readConfig = config.read_file(codecs.open(configFilePath, "r", "utf8"))
 
     if not args.noBot:
         bot_token = config.get("telegrambot","token")
