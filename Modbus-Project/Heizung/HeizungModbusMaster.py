@@ -152,8 +152,8 @@ class telegramClientsClass:
                 attrib.notifyAllowed = False
                 return False
 
-        def notify(self, attrib):
-            if not self.checkNightTime() and attrib.checkNotifyAllowed():
+        def notify(self, attrib, force=False):
+            if (not self.checkNightTime() and attrib.checkNotifyAllowed()) or force:
                 print("ShowerMessage to "+self.name)
                 self.calcNextNotify(attrib)
                 return attrib.notifyMessage
@@ -173,7 +173,7 @@ class telegramClientsClass:
                 self.ignoreNight = ignoreNight
                 self.notify = notify
                 self.notifyAllowed = True
-                self.notifyMessage = "Safe to shower!"         
+                self.notifyMessage = "Safe to shower!\n"         
 
 def clientsHandle(msg):
     telegramClients.newClient(id=str(msg['chat']['id']), name=msg['chat']['first_name']+" "+msg['chat']['last_name'], timeAdded=msg["date"])
@@ -225,8 +225,9 @@ def telegramBotHandle(msg):
             currentClient.createShowerClass()
         if commandDict["/showertemp"]:
             currentClient.shower.notifyTemperature = round(float(commandDict["/showertemp"]),2)
-            currentClient.shower.nextNotify = str(datetime.now())
+            currentClient.shower.nextNotifyTime = str(datetime.now())
             send_string += "Shower temperature set to "+str(currentClient.shower.notifyTemperature)+"°C\n"
+            send_string += currentClient.notify(currentClient.shower, force=True)
         else:
             send_string += "Current shower temperature is "+str(currentClient.shower.notifyTemperature)+"°C\n"
         pass
@@ -264,13 +265,14 @@ if __name__ == "__main__":
     if args.debug:
         chdir("Modbus-Project/Heizung")
     main()
-    print("")
     while not args.noBot:
         waterTemperature = HeizungModbusServer.read_value("TSP.oben2")
         for i in telegramClients.clients:
             checkClient = telegramClients.clients[i]
             if waterTemperature > checkClient.shower.notifyTemperature:
-                checkClient.notify(checkClient.shower)
+                notifyMessage = checkClient.notify(checkClient.shower,force=True)
+                if notifyMessage:
+                    bot.sendMessage(i, notifyMessage)
                 pass
         telegramClients.saveToFile()
         sleep(600)
