@@ -154,7 +154,7 @@ class telegramClientsClass:
                 return False
 
         def notify(self, attrib, force=False):
-            if (not self.checkNightTime() and attrib.checkNotifyAllowed()) or force:
+            if (not self.checkNightTime() and self.checkNotifyAllowed(attrib)) or force:
                 print("ShowerMessage to "+self.name)
                 self.calcNextNotify(attrib)
                 return attrib.notifyMessage
@@ -273,7 +273,10 @@ if __name__ == "__main__":
             if waterTemperature > checkClient.shower.notifyTemperature:
                 notifyMessage = checkClient.notify(checkClient.shower,force=True)
                 if notifyMessage:
-                    bot.sendMessage(i, notifyMessage)
+                    try:
+                        bot.sendMessage(i, notifyMessage)
+                    except Exception as e:
+                        print(str(e))
                 pass
         telegramClients.saveToFile()
         sleep(600)
