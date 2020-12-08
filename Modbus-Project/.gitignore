@@ -4,3 +4,4 @@ telegrambot.cfg
 config.cfg
 nohup.out
 !configTemplate.cfg
+*.old
