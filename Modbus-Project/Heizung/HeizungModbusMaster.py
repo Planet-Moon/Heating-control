@@ -155,9 +155,12 @@ class telegramClientsClass:
 
         def notify(self, attrib, force=False):
             if (not self.checkNightTime() and self.checkNotifyAllowed(attrib)) or force:
-                print("ShowerMessage to "+self.name)
-                self.calcNextNotify(attrib)
-                return attrib.notifyMessage
+                if self._isLarger(self.getSensorValue(attrib), float(attrib.notifyTemperature)):
+                    print("ShowerMessage to "+self.name)
+                    self.calcNextNotify(attrib)
+                    return attrib.notifyMessage
+                else:
+                    return None 
             else:
                 return None
 
@@ -165,6 +168,12 @@ class telegramClientsClass:
             self.shower = self.showerClass()
             self.shower.notifyAllowed = self.checkNotifyAllowed(self.shower)
             return self.shower
+
+        def _isLarger(self, value1, value2):
+            return value1 > value2
+
+        def getSensorValue(self, attrib):
+            return HeizungModbusServer.read_value(attrib.modbusRegisterName)
 
         class showerClass:
             def __init__(self, notifyTemperature=50, nextNotifyTime=str(datetime.now()), notifyInterval=str(timedelta(hours=4, seconds=0)), ignoreNight=False, notify=True):
@@ -174,7 +183,8 @@ class telegramClientsClass:
                 self.ignoreNight = ignoreNight
                 self.notify = notify
                 self.notifyAllowed = True
-                self.notifyMessage = "Safe to shower!\n"         
+                self.notifyMessage = "Safe to shower!\n"
+                self.modbusRegisterName = "TSP.oben2"
 
 def clientsHandle(msg):
     telegramClients.newClient(id=str(msg['chat']['id']), name=msg['chat']['first_name']+" "+msg['chat']['last_name'], timeAdded=msg["date"])
@@ -228,7 +238,9 @@ def telegramBotHandle(msg):
             currentClient.shower.notifyTemperature = round(float(commandDict["/showertemp"]),2)
             currentClient.shower.nextNotifyTime = str(datetime.now())
             send_string += "Shower temperature set to "+str(currentClient.shower.notifyTemperature)+"°C\n"
-            send_string += currentClient.notify(currentClient.shower, force=True)
+            notifyString = currentClient.notify(currentClient.shower, force=False)
+            if notifyString:
+                send_string += notifyString
         else:
             send_string += "Current shower temperature is "+str(currentClient.shower.notifyTemperature)+"°C\n"
         pass
@@ -271,9 +283,11 @@ if __name__ == "__main__":
         for i in telegramClients.clients:
             checkClient = telegramClients.clients[i]
             if waterTemperature > checkClient.shower.notifyTemperature:
-                notifyMessage = checkClient.notify(checkClient.shower,force=True)
+                notifyMessage = checkClient.notify(checkClient.shower,force=False)
                 if notifyMessage:
                     try:
+                        if args.debug and i != "419394316":
+                            continue
                         bot.sendMessage(i, notifyMessage)
                     except Exception as e:
                         print(str(e))
