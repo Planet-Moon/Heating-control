@@ -57,9 +57,9 @@ class telegramClientsClass:
         self.readFromFile()
         pass
 
-    def newClient(self, id, name, timeAdded):
+    def newClient(self, id, firstName, lastName, timeAdded):
         if not self.clientExists(id):
-            self.clients[id] = self.telegramChatIDClass(name, timeAdded)
+            self.clients[id] = self.telegramChatIDClass(firstName, lastName, timeAdded)
 
     def clientExists(self, id):
         if id in self.clients:
@@ -77,7 +77,7 @@ class telegramClientsClass:
         if data:
             for i in data["clients"]:
                 j = data["clients"][i]
-                self.newClient(id=i, name=j["name"], timeAdded=j["timeAdded"])
+                self.newClient(id=i, firstName=j["firstName"], lastName=j["lastName"], timeAdded=j["timeAdded"])
                 if "shower" in j:
                     k = j["shower"]
                     self.clients[i].shower = self.clients[i].createShowerClass()
@@ -108,8 +108,9 @@ class telegramClientsClass:
         return retVal
 
     class telegramChatIDClass:
-        def __init__(self, name, timeAdded):
-            self.name = name
+        def __init__(self, firstName, lastName, timeAdded):
+            self.firstName = firstName
+            self.lastName = lastName
             self.timeAdded = timeAdded
             self.nightModeStart = str(time(hour=23))
             self.nightModeEnd = str(time(hour=6))
@@ -156,7 +157,7 @@ class telegramClientsClass:
         def notify(self, attrib, force=False):
             if (not self.checkNightTime() and self.checkNotifyAllowed(attrib)) or force:
                 if self._isLarger(self.getSensorValue(attrib), float(attrib.notifyTemperature)):
-                    print("ShowerMessage to "+self.name)
+                    print("ShowerMessage to "+self.firstName+" "+self.lastName)
                     self.calcNextNotify(attrib)
                     return attrib.notifyMessage
                 else:
@@ -187,7 +188,14 @@ class telegramClientsClass:
                 self.modbusRegisterName = "TSP.oben2"
 
 def clientsHandle(msg):
-    telegramClients.newClient(id=str(msg['chat']['id']), name=msg['chat']['first_name']+" "+msg['chat']['last_name'], timeAdded=msg["date"])
+    try:
+        last_name = msg['chat']['last_name']
+    except: 
+        last_name = ""
+    telegramClients.newClient(id=str(msg['chat']['id']),
+        firstName=msg['chat']['first_name'],
+        lastName=last_name,
+        timeAdded=msg["date"])
     pass
 
 def parseTelegramCommand(messageText):
@@ -286,8 +294,6 @@ if __name__ == "__main__":
                 notifyMessage = checkClient.notify(checkClient.shower,force=False)
                 if notifyMessage:
                     try:
-                        if args.debug and i != "419394316":
-                            continue
                         bot.sendMessage(i, notifyMessage)
                     except Exception as e:
                         print(str(e))
