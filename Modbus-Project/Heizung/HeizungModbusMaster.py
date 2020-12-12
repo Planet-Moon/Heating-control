@@ -287,17 +287,9 @@ if __name__ == "__main__":
         chdir("Modbus-Project/Heizung")
     main()
     while not args.noBot:
-        waterTemperature = HeizungModbusServer.read_value("TSP.oben2")
         for i in telegramClients.clients:
             checkClient = telegramClients.clients[i]
-            if waterTemperature > checkClient.shower.notifyTemperature:
-                notifyMessage = checkClient.notify(checkClient.shower,force=False)
-                if notifyMessage:
-                    try:
-                        bot.sendMessage(i, notifyMessage)
-                    except Exception as e:
-                        print(str(e))
-                pass
+            checkClient.notify(checkClient.shower)
         telegramClients.saveToFile()
         sleep(600)
     if args.noBot:
