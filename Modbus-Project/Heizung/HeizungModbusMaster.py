@@ -35,6 +35,9 @@ def readConfig(configFilePath):
         modbusServerRegister.append({"name": temp[0], "address": int(temp[1]), "length": int(temp[2]), "factor": float(temp[3]), "unit": temp[4]})
 
     dataFileName = config.get("dataFile","name")
+    dataFilePath = config.get("dataFile","path")
+    dataFileName = str(dataFilePath+"/"+dataFileName)
+    
     logFilePath = config.get("logFile","path")
     logFileName = config.get("logFile","name")
     logFileName = str(logFilePath+"/"+logFileName)
