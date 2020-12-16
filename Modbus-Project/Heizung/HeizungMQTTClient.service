@@ -1,0 +1,14 @@
+[Unit]
+Description=Heizung MQTT Client Service publishing data
+After=network.target
+
+[Service]
+ExecStart=/usr/bin/python3 MQTTClient.py
+WorkingDirectory=/home/pi/GoE-Charger/Modbus-Project/Heizung
+StandardOutput=inherit
+StandardError=inherit
+Restart=always
+User=pi
+
+[Install]
+WantedBy=multi-user.target
