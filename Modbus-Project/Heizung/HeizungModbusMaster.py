@@ -14,7 +14,7 @@ from re import findall as RegexFindAll
 import codecs
 
 def readConfig(configFilePath):
-    global bot_token, modbusServerIP, modbusServerPort, modbusServerRegister, dataFileName, args
+    global bot_token, modbusServerIP, modbusServerPort, modbusServerRegister, dataFileName, args, logFileName
     config = configparser.RawConfigParser(inline_comment_prefixes="#")
     readConfig = config.read_file(codecs.open(configFilePath, "r", "utf8"))
 
@@ -35,7 +35,16 @@ def readConfig(configFilePath):
         modbusServerRegister.append({"name": temp[0], "address": int(temp[1]), "length": int(temp[2]), "factor": float(temp[3]), "unit": temp[4]})
 
     dataFileName = config.get("dataFile","name")
+    logFilePath = config.get("logFile","path")
+    logFileName = config.get("logFile","name")
+    logFileName = str(logFilePath+"/"+logFileName)
     pass
+
+def writeLog(severity, message):
+    message = message.replace("\n", "\\n")
+    with open(logFileName, "a") as outfile:
+        outfile.write("{{\"time\":{}, \"severity\":{}, \"message\":{}}}\n".format(datetime.now(), severity, message))
+    outfile.close()
 
 def telegramBotInit():
     global bot
@@ -49,6 +58,7 @@ def telegramBotInit():
     botInfo = bot.getMe()
     MessageLoop(bot,telegramBotHandle).run_as_thread()
     print("Bot is listening ...")
+    writeLog(1, "Bot is listening")
 
 class telegramClientsClass:
     def __init__(self, fileName="data.json"):
@@ -74,6 +84,7 @@ class telegramClientsClass:
                 data = json.load(outfile)
         except Exception as e:
             print("Error reading from file" + str(e))
+            writeLog(2, "Error reading from file "+str(e))
         if data:
             for i in data["clients"]:
                 j = data["clients"][i]
@@ -158,6 +169,7 @@ class telegramClientsClass:
             if (not self.checkNightTime() and self.checkNotifyAllowed(attrib)) or force:
                 if self._isLarger(self.getSensorValue(attrib), float(attrib.notifyTemperature)):
                     print("ShowerMessage to "+self.firstName+" "+self.lastName)
+                    writeLog(3, "ShowerMessage to "+self.firstName+" "+self.lastName)
                     self.calcNextNotify(attrib)
                     return attrib.notifyMessage
                 else:
@@ -174,6 +186,10 @@ class telegramClientsClass:
             return value1 > value2
 
         def getSensorValue(self, attrib):
+            retVal = None
+            while not retVal:
+                retVal = HeizungModbusServer.read_value(attrib.modbusRegisterName)
+                sleep(10)
             return HeizungModbusServer.read_value(attrib.modbusRegisterName)
 
         class showerClass:
@@ -224,7 +240,8 @@ def telegramBotHandle(msg):
     clientsHandle(msg)
     commandDict = parseTelegramCommand(messageText)
     currentClient = telegramClients.clients[chat_id]
-    print(str(datetime.now())+': Got message: '+str(messageText)+" from chatID "+chat_id)    
+    print(str(datetime.now())+': Got message: '+str(messageText)+" from chatID "+chat_id)
+    writeLog(3, "Got message: \""+str(messageText)+"\" from chatID "+chat_id) 
 
     send_string = ""
 
@@ -258,6 +275,7 @@ def telegramBotHandle(msg):
 
     telegramClients.saveToFile()
     bot.sendMessage(chat_id, send_string)
+    writeLog(3, "Sent message: \"{}\" to ChatID {}".format(send_string, chat_id))
     pass
 
 def argsParse():
