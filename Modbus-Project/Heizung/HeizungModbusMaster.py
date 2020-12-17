@@ -169,16 +169,14 @@ class telegramClientsClass:
                 return False
 
         def notify(self, attrib, force=False):
+            retrunString = ""
             if (not self.checkNightTime() and self.checkNotifyAllowed(attrib)) or force:
                 if self._isLarger(self.getSensorValue(attrib), float(attrib.notifyTemperature)):
                     print("ShowerMessage to "+self.firstName+" "+self.lastName)
                     writeLog(3, "ShowerMessage to "+self.firstName+" "+self.lastName)
                     self.calcNextNotify(attrib)
-                    return attrib.notifyMessage
-                else:
-                    return None 
-            else:
-                return None
+                    retrunString += attrib.notifyMessage
+            return retrunString
 
         def createShowerClass(self):
             self.shower = self.showerClass()
@@ -191,9 +189,9 @@ class telegramClientsClass:
         def getSensorValue(self, attrib):
             retVal = None
             while not retVal:
-                retVal = HeizungModbusServer.read_value(attrib.modbusRegisterName)
+                retVal = HeizungModbusServer.register[attrib.modbusRegisterName].value
                 sleep(10)
-            return HeizungModbusServer.read_value(attrib.modbusRegisterName)
+            return HeizungModbusServer.register[attrib.modbusRegisterName].value
 
         class showerClass:
             def __init__(self, notifyTemperature=50, nextNotifyTime=str(datetime.now()), notifyInterval=str(timedelta(hours=4, seconds=0)), ignoreNight=False, notify=True):
@@ -308,9 +306,13 @@ if __name__ == "__main__":
         chdir("Modbus-Project/Heizung")
     main()
     while not args.noBot:
+        HeizungModbusServer.read_value("TSP.oben2")
         for i in telegramClients.clients:
+            notifyMessage = ""
             checkClient = telegramClients.clients[i]
-            checkClient.notify(checkClient.shower)
+            notifyMessage += checkClient.notify(checkClient.shower)
+            if notifyMessage:
+                bot.sendMessage(i, notifyMessage)
         telegramClients.saveToFile()
         sleep(600)
     if args.noBot:
