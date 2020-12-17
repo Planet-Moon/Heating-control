@@ -82,6 +82,7 @@ class modbus_device(object):
             self.signed = signed
             self.factor = factor
             self.unit = unit
+            self.value = None
 
         def read(self, client, unitID):
             self.error = 0
