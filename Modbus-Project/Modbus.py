@@ -31,7 +31,9 @@ class modbus_device(object):
 
     def newRegister(self, name, address, length, signed=False, factor=1, unit=""):
         self.register[name] = self.modbus_register(address, length, signed, factor, unit)
-        self.read(name) # Init values
+        test = self.read(name) # Init values
+        if test:
+            return True
 
     def read(self, name):
         try:
@@ -44,8 +46,9 @@ class modbus_device(object):
             value = TC.list_to_number(self.read(name), signed=self.register[name].signed) * self.register[name].factor
             self.register[name].value = value
             return value
-        except:
+        except Exception as e:
             print("Error reading value from register "+name) 
+            print("Exeption: "+str(e))
 
     def write_register(self, name, value):
         try:
