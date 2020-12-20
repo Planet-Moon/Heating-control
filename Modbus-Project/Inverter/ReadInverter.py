@@ -31,12 +31,12 @@ def handle(msg):
     client_missing = True
 
     for i in data["clients"]:
-        if i["id"] == msg['chat']['id']:
+        if i == msg['chat']['id']:
             client_missing = False
             break
         
     if client_missing:
-        data["clients"].append({"id": msg['chat']['id'], "name": msg['chat']['first_name']+" "+msg['chat']['last_name'], "timeAdded": msg["date"]})
+        data["clients"][msg['chat']['id']] = {"name": msg['chat']['first_name']+" "+msg['chat']['last_name'], "timeAdded": msg["date"]}
         with open(dataFileName, "w") as outfile:
             print(data)
             json.dump(data, outfile)
@@ -108,7 +108,7 @@ dataFileName = "data.json"
 with open(dataFileName) as json_file:
     data = json.load(json_file)
     if not data:
-        data["clients"] = []
+        data["clients"] = {}
     pass
 
 while True:
