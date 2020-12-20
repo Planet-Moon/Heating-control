@@ -31,15 +31,15 @@ def handle(msg):
     client_missing = True
 
     for i in data["clients"]:
-        if i == msg['chat']['id']:
+        if i == str(msg['chat']['id']):
             client_missing = False
             break
         
     if client_missing:
-        data["clients"][msg['chat']['id']] = {"name": msg['chat']['first_name']+" "+msg['chat']['last_name'], "timeAdded": msg["date"]}
+        data["clients"][msg['chat']['id']] = {"firstName": msg['chat']['first_name'], "lastName": msg['chat']['last_name'], "timeAdded": msg["date"]}
         with open(dataFileName, "w") as outfile:
             print(data)
-            json.dump(data, outfile)
+            json.dump(data, outfile, indent=4, check_circular=True)
 
     try:
         send_string = "not recognized command"
