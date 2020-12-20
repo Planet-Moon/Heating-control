@@ -64,10 +64,10 @@ def handle(msg):
         elif command == "/ip":
             send_string = "IP Address: "+str(MyInverter.ipAddress)
         
-        bot.sendMessage(chat_id, send_string)
-
     except:
         bot.sendMessage(chat_id, "Error reading modbus")
+
+    bot.sendMessage(chat_id, send_string)
 
 def TelegramBot(modbusClient):
     global bot
@@ -118,4 +118,4 @@ while True:
     # print("Current Power * 3.5: "+str(current_power * 3.5)+" W")
     # print("Energy today: "+str(MyInverter.get_todayEnergy())+" Wh")
     # print("System Energy today: "+str(MyInverter.get_todayEnergy() * 3.5)+" Wh")
-    time.sleep(15)
+    time.sleep(150)
