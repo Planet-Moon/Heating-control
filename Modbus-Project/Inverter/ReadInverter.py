@@ -74,7 +74,7 @@ def TelegramBot(modbusClient):
     config = configparser.RawConfigParser(inline_comment_prefixes="#")
     configFilePath = "telegrambot.cfg"
     if __debug__:
-        configFilePath = "Modbus-Project/"+configFilePath
+        configFilePath = "Modbus-Project/Inverter/"+configFilePath
     print("configFilePath: "+configFilePath)
     readConfig = config.read(configFilePath)
     bot_token = config.get("telegrambot","token")
