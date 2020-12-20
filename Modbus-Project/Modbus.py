@@ -68,6 +68,8 @@ class modbus_device(object):
         for i in self.register:
             if self.register[i].unit :
                 ret_val.append([i, round(self.read_value(i),2), self.register[i].unit])
+            else:
+                ret_val.append([i, round(self.read_value(i),2), ""])
             pass
         pass
         return ret_val
