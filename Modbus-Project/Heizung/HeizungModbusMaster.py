@@ -13,6 +13,19 @@ import urllib3
 from re import findall as RegexFindAll
 import codecs
 
+# Define globals
+HeizungModbusServer = None
+registerData = None
+telegramClients = None
+bot_token = None
+modbusServerIP = None
+modbusServerPort = None
+modbusServerRegister = None
+dataFileName = None
+args = None
+logFileName = None
+bot = None
+
 def readConfig(configFilePath):
     global bot_token, modbusServerIP, modbusServerPort, modbusServerRegister, dataFileName, args, logFileName
     config = configparser.RawConfigParser(inline_comment_prefixes="#")
@@ -32,6 +45,10 @@ def readConfig(configFilePath):
     modbusServerRegister = []
     for i in modbusServerRegisters:
         temp = i.split(", ")
+        try:
+            a = temp[4]
+        except:
+            temp.insert(4,"")
         modbusServerRegister.append({"name": temp[0], "address": int(temp[1]), "length": int(temp[2]), "factor": float(temp[3]), "unit": temp[4]})
 
     dataFileName = config.get("dataFile","name")
