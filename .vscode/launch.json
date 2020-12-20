@@ -33,8 +33,11 @@
             "name": "readInverter",
             "type": "python",
             "request": "launch",
-            "program": "${workspaceFolder}/Modbus-Project/ReadInverter.py",
-            "console": "integratedTerminal"
+            "program": "${workspaceFolder}/Modbus-Project/Inverter/ReadInverter.py",
+            "console": "integratedTerminal",
+            "args": [
+                "--debug"
+            ]
         }
     ]
 }

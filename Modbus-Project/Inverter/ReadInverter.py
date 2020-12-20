@@ -4,7 +4,7 @@ import time
 import configparser
 import argparse
 import json
-import os.path
+from os import path, chdir
 from datetime import datetime
 import telepot
 from telepot.loop import MessageLoop
@@ -73,8 +73,6 @@ def TelegramBot(modbusClient):
     global bot
     config = configparser.RawConfigParser(inline_comment_prefixes="#")
     configFilePath = "telegrambot.cfg"
-    if __debug__:
-        configFilePath = "Modbus-Project/Inverter/"+configFilePath
     print("configFilePath: "+configFilePath)
     readConfig = config.read(configFilePath)
     bot_token = config.get("telegrambot","token")
@@ -86,7 +84,10 @@ def TelegramBot(modbusClient):
 
 parser = argparse.ArgumentParser(description='SMA Inverter Modbus reader.')
 parser.add_argument("-ip", help="ipAddress of the Inverter")
+parser.add_argument("--debug", help="Run with debug features", action="store_true")
 args = parser.parse_args()
+if args.debug:
+    chdir("Modbus-Project/Inverter")
 
 MyEnergyMeter = sma_EnergyMeter()
 
@@ -103,8 +104,6 @@ bot = ""
 TelegramBot(MyInverter)
 data = {}
 dataFileName = "data.json"
-if __debug__:
-    dataFileName = "Modbus-Project/"+dataFileName
 
 with open(dataFileName) as json_file:
     data = json.load(json_file)

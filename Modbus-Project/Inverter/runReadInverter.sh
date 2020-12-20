@@ -1,1 +1,1 @@
-nohup python3 -O ./ReadInverter.py & 
+nohup python3 ./ReadInverter.py & 
