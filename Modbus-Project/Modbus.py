@@ -34,6 +34,8 @@ class modbus_device(object):
         test = self.read(name) # Init values
         if test:
             return True
+        else:
+            del self.register[name]
 
     def read(self, name: str):
         try:
