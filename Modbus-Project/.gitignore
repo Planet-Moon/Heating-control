@@ -1,7 +1,7 @@
 *.pyc
 data.json
 telegrambot.cfg
-config.cfg
+config.json
 nohup.out
 !configTemplate.cfg
 *.old

@@ -1,7 +1,6 @@
 from Modbus import modbus_device
 import TypeConversion as TC
 from time import sleep
-import configparser
 import argparse
 import json
 from os import path, chdir
@@ -14,50 +13,50 @@ from re import findall as RegexFindAll
 import codecs
 
 # Define globals
-HeizungModbusServer = None
-registerData = None
 telegramClients = None
 bot_token = None
-modbusServerIP = None
-modbusServerPort = None
-modbusServerRegister = None
+modbusMasters = None
 dataFileName = None
 args = None
 logFileName = None
 bot = None
 
 def readConfig(configFilePath):
-    global bot_token, modbusServerIP, modbusServerPort, modbusServerRegister, dataFileName, args, logFileName
-    config = configparser.RawConfigParser(inline_comment_prefixes="#")
-    readConfig = config.read_file(codecs.open(configFilePath, "r", "utf8"))
-
-    if not args.noBot:
-        bot_token = config.get("telegrambot","token")
-
-    modbusServerIP = config.get("modbusServer","ip")
+    global bot_token, modbusMasters, dataFileName, args, logFileName
+    data = None
     try:
-        modbusServerPort = config.get("modbusServer","port")
-    except:
-        pass
-    modbusServerRegisters = config.get("modbusServer","registers")
-    modbusServerRegisters = modbusServerRegisters.split("\n")
-    del modbusServerRegisters[0]
-    modbusServerRegister = []
-    for i in modbusServerRegisters:
-        temp = i.split(", ")
-        try:
-            a = temp[4]
-        except:
-            temp.insert(4,"")
-        modbusServerRegister.append({"name": temp[0], "address": int(temp[1]), "length": int(temp[2]), "factor": float(temp[3]), "unit": temp[4]})
+        with open(configFilePath, "r", encoding='utf-8') as outfile:
+            data = json.load(outfile)
+    except Exception as e:
+        print("Error reading from file" + str(e))
+        writeLog(2, "Error reading from file "+str(e))
+    if data:
+        if not args.noBot:
+            bot_token = data.get("TelegramBot").get("token")
 
-    dataFileName = config.get("dataFile","name")
-    dataFilePath = config.get("dataFile","path")
-    dataFileName = str(dataFilePath+"/"+dataFileName)
-    
-    logFilePath = config.get("logFile","path")
-    logFileName = config.get("logFile","name")
-    logFileName = str(logFilePath+"/"+logFileName)
+        modbusMasters = {}
+        modbusData = data.get("Modbus")
+        for i in modbusData:
+            temp_modbus_master = modbusData.get(i)
+            modbusMasters[i] = modbus_device(ipAddress=temp_modbus_master.get("ip"), port=temp_modbus_master.get("port"))
+            modbusRegisters = temp_modbus_master.get("registers")
+            for j in modbusRegisters:
+                modbusMasters.get(i).newRegister(j.get("name"),
+                    int(j.get("address")),
+                    int(j.get("length")),
+                    factor=float(j.get("factor")),
+                    type_=j.get("type"),
+                    unit=j.get("unit"))
+                print(modbusMasters[i].read_string(j.get("name")))
+                pass    
+
+        dataFilePath = data.get("dataFile").get("path")
+        dataFileName = data.get("dataFile").get("name")
+        dataFileName = str(dataFilePath+"/"+dataFileName)
+
+        logFilePath = data.get("logFile").get("path")
+        logFileName = data.get("logFile").get("name")
+        logFileName = str(logFilePath+"/"+logFileName)
     pass
 
 def writeLog(severity, message):
@@ -304,13 +303,8 @@ def argsParse():
     args = parser.parse_args()
 
 def main():
-    global HeizungModbusServer, registerData, telegramClients
-    readConfig("config.cfg")
-
-    HeizungModbusServer = modbus_device(ipAddress=modbusServerIP, port=modbusServerPort)
-    for i in modbusServerRegister:
-        HeizungModbusServer.newRegister(name=i["name"], address=i["address"], length=i["length"], factor=i["factor"], unit=i["unit"])
-        HeizungModbusServer.read_string(name=i["name"])        
+    global telegramClients
+    readConfig("config.json")
     
     if not args.noBot:
         telegramClients = telegramClientsClass()

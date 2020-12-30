@@ -1,3 +1,3 @@
 {
-    "python.autoComplete.extraPaths": ["E:\\Users\\Andreas\\Andreas\\Private Elektronik\\SMA_pyModbus\\Modbus-Project\\Heizung"],
+    "python.autoComplete.extraPaths": ["E:\\Users\\Andreas\\Andreas\\Private Elektronik\\SMA_pyModbus\\Modbus-Project\\Heizung", "E:\\Users\\Andreas\\Andreas\\Private Elektronik\\SMA_pyModbus\\Modbus-Project\\"],
 }
