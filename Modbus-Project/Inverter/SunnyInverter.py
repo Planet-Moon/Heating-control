@@ -44,41 +44,44 @@ class sma_Inverter:
         self.modbus.UnitID = UnitID_response[3]
 
         self.modbus.newRegister("SUSyIDModule", address=30003, length=2, signed=False)
-        self.modbus.SUSyIDModule = self.modbus.read_value("SUSyIDModule")
+        # self.modbus.SUSyIDModule = self.modbus.read_value("SUSyIDModule")
         
         self.modbus.newRegister("serialnumber", address=30057, length=2, signed=False)
-        self.modbus.serialnumber = self.modbus.read_value("serialnumber")
+        # self.modbus.serialnumber = self.modbus.read_value("serialnumber")
 
         self.modbus.newRegister("NameplateSerialnumber", address=30057, length=2, signed=False)
-        self.modbus.NameplateSerialnumber = self.modbus.read_value("NameplateSerialnumber")
+        # self.modbus.NameplateSerialnumber = self.modbus.read_value("NameplateSerialnumber")
 
         self.modbus.newRegister("Model", address=30053, length=2, signed=False)
-        self.modbus.Model = self.modbus.read_value("Model")
+        # self.modbus.Model = self.modbus.read_value("Model")
 
         self.modbus.newRegister("FirmwareVersion", address=40063, length=2, signed=False)
-        self.modbus.FirmwareVersion = self.modbus.read_value("FirmwareVersion")
+        # self.modbus.FirmwareVersion = self.modbus.read_value("FirmwareVersion")
 
         self.modbus.newRegister("operationHealth", address=30201, length=2)
-        self.modbus.newRegister("totalPower", address=30775, length=2, signed=True, unit=" W")
-        self.modbus.newRegister("todayEnergy", address=30535, length=2, unit=" Wh")
+
+        self.modbus.newRegister("totalPower", address=30775, length=2, signed=True, type_="float", unit=" W")
+
+        self.modbus.newRegister("todayEnergy", address=30535, length=2, type_="float", unit=" Wh")
+        
         self.modbus.newRegister("timeZone", address=40003, length=2)
 
-        self.modbus.newRegister("LeistungEinspeisung", address=30867, length=2, signed=True, unit=" W")
-        self.LeistungEinspeisung = self.modbus.read_value("LeistungEinspeisung")
+        self.modbus.newRegister("LeistungEinspeisung", address=30867, length=2, signed=True, type_="float", unit=" W")
+        # self.LeistungEinspeisung = self.modbus.read_value("LeistungEinspeisung")
 
-        self.modbus.newRegister("LeistungBezug", address=30865, length=2, signed=True, unit=" W")
-        self.LeistungBezug = self.modbus.read_value("LeistungBezug")
+        self.modbus.newRegister("LeistungBezug", address=30865, length=2, signed=True, type_="float", unit=" W")
+        # self.LeistungBezug = self.modbus.read_value("LeistungBezug")
 
-        self.modbus.newRegister("GesamtErtrag", address=30513, length=4, signed=False, unit=" Wh")
-        self.LeistungBezug = self.modbus.read_value("GesamtErtrag")
+        self.modbus.newRegister("GesamtErtrag", address=30513, length=4, signed=False, type_="float", unit=" Wh")
+        # self.LeistungBezug = self.modbus.read_value("GesamtErtrag")
 
-        self.modbus.newRegister("ZählerstandBezugszähler", address=30581, length=2, signed=False, unit=" Wh")
-        self.LeistungBezug = self.modbus.read_value("ZählerstandBezugszähler")
+        self.modbus.newRegister("ZählerstandBezugszähler", address=30581, length=2, signed=False, type_="float", unit=" Wh")
+        # self.LeistungBezug = self.modbus.read_value("ZählerstandBezugszähler")
 
-        self.modbus.newRegister("ZählerstandEinspeisezähler", address=30583, length=2, signed=False, unit=" Wh")
-        self.LeistungBezug = self.modbus.read_value("ZählerstandEinspeisezähler")
+        self.modbus.newRegister("ZählerstandEinspeisezähler", address=30583, length=2, signed=False, type_="float", unit=" Wh")
+        # self.LeistungBezug = self.modbus.read_value("ZählerstandEinspeisezähler")
 
-        self.modbus.read_all()
+        # self.modbus.read_all()
         pass
     
     def _change_IP(self, ipAddress):

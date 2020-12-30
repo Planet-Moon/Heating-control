@@ -11,18 +11,20 @@ import telepot.api
 import urllib3
 from re import findall as RegexFindAll
 import codecs
+from SunnyInverter import sma_Inverter as sma_inverter
 
 # Define globals
 telegramClients = None
 bot_token = None
-modbusMasters = None
+modbusDict = None
+smaDict = None
 dataFileName = None
 args = None
 logFileName = None
 bot = None
 
 def readConfig(configFilePath):
-    global bot_token, modbusMasters, dataFileName, args, logFileName
+    global bot_token, modbusDict, smaDict, dataFileName, args, logFileName
     data = None
     try:
         with open(configFilePath, "r", encoding='utf-8') as outfile:
@@ -34,21 +36,28 @@ def readConfig(configFilePath):
         if not args.noBot:
             bot_token = data.get("TelegramBot").get("token")
 
-        modbusMasters = {}
+        modbusDict = {}
         modbusData = data.get("Modbus")
         for i in modbusData:
-            temp_modbus_master = modbusData.get(i)
-            modbusMasters[i] = modbus_device(ipAddress=temp_modbus_master.get("ip"), port=temp_modbus_master.get("port"))
-            modbusRegisters = temp_modbus_master.get("registers")
+            temp_modbus = modbusData.get(i)
+            modbusDict[i] = modbus_device(ipAddress=temp_modbus.get("ip"), port=temp_modbus.get("port"))
+            modbusRegisters = temp_modbus.get("registers")
             for j in modbusRegisters:
-                modbusMasters.get(i).newRegister(j.get("name"),
+                modbusDict.get(i).newRegister(j.get("name"),
                     int(j.get("address")),
                     int(j.get("length")),
                     factor=float(j.get("factor")),
                     type_=j.get("type"),
                     unit=j.get("unit"))
-                print(modbusMasters[i].read_string(j.get("name")))
-                pass    
+                print(modbusDict[i].read_string(j.get("name")))
+                pass  
+        
+        smaDict = {}
+        smaData = data.get("SMA_Inverter")
+        for i in smaData:
+            temp_sma = smaData.get(i)
+            smaDict[i] = sma_inverter(temp_sma.get("ip"))
+            print(smaDict[i])
 
         dataFilePath = data.get("dataFile").get("path")
         dataFileName = data.get("dataFile").get("name")
@@ -202,12 +211,18 @@ class telegramClientsClass:
         def _isLarger(self, value1, value2):
             return value1 > value2
 
+        def _isSmaller(self, value1, value2):
+            return value1 < value2
+
+        def _isEqual(self, value1, value2):
+            return value1 == value2
+
         def getSensorValue(self, attrib):
             retVal = None
             while not retVal:
-                retVal = HeizungModbusServer.register[attrib.modbusRegisterName].value
+                retVal = modbusDict.get("Heizung").register[attrib.modbusRegisterName].value
                 sleep(10)
-            return HeizungModbusServer.register[attrib.modbusRegisterName].value
+            return modbusDict.get("Heizung").register[attrib.modbusRegisterName].value
 
         class showerClass:
             def __init__(self, notifyTemperature=50, nextNotifyTime=str(datetime.now()), notifyInterval=str(timedelta(hours=4, seconds=0)), ignoreNight=False, notify=True):
@@ -218,7 +233,7 @@ class telegramClientsClass:
                 self.notify = notify
                 self.notifyAllowed = True
                 self.notifyMessage = "Safe to shower!\n"
-                self.modbusRegisterName = "TSP.oben2"
+                self.modbusRegisterName = "SpeicherOben"
 
 def clientsHandle(msg):
     try:
@@ -264,13 +279,13 @@ def telegramBotHandle(msg):
 
     if "/all" in commandDict:
         try: 
-            response = HeizungModbusServer.read_all()
+            response = modbusDict.get("Heizung").read_all()
+            interString = []
+            for i in response:
+                interString.append("{}: {}{}".format(*i)) 
+            send_string = "\n".join(interString)
         except:
             send_string += "Error reading modbus"
-        interString = []
-        for i in response:
-            interString.append("{}: {}{}".format(*i)) 
-        send_string = "\n".join(interString)
         pass
 
     if "/showertemp" in commandDict:
@@ -317,7 +332,7 @@ if __name__ == "__main__":
         chdir("Modbus-Project/Heizung")
     main()
     while not args.noBot:
-        HeizungModbusServer.read_value("TSP.oben2")
+        modbusDict.get("Heizung").read_value("SpeicherOben")
         for i in telegramClients.clients:
             notifyMessage = ""
             checkClient = telegramClients.clients[i]
@@ -327,5 +342,5 @@ if __name__ == "__main__":
         telegramClients.saveToFile()
         sleep(600)
     if args.noBot:
-        print(str(HeizungModbusServer.read_all()))
+        print(str(modbusDict.get("Heizung").read_all()))
         print("Done.")
