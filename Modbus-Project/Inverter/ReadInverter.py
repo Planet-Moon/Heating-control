@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-from SunnyInverter import sma_Inverter
+from SunnyInverter import sma_SolarInverter
 import time
 import configparser
 import argparse
@@ -96,7 +96,7 @@ if not args.ip:
     InverterIp = defaultInverterIP
 else: 
     InverterIp = args.ip
-MyInverter = sma_Inverter(InverterIp)
+MyInverter = sma_SolarInverter(InverterIp)
 print("MyInverter.serialnumber: "+str(MyInverter.serialnumber))
 print("MyInverter.operationHealth: "+str(MyInverter.operationHealth))
 

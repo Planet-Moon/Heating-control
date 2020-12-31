@@ -11,7 +11,7 @@ import telepot.api
 import urllib3
 from re import findall as RegexFindAll
 import codecs
-from SunnyInverter import sma_Inverter as sma_inverter
+from SunnyInverter import sma_SolarInverter
 
 # Define globals
 telegramClients = None
@@ -56,7 +56,7 @@ def readConfig(configFilePath):
         smaData = data.get("SMA_Inverter")
         for i in smaData:
             temp_sma = smaData.get(i)
-            smaDict[i] = sma_inverter(temp_sma.get("ip"))
+            smaDict[i] = sma_SolarInverter(temp_sma.get("ip"))
             print(smaDict[i])
 
         dataFilePath = data.get("dataFile").get("path")
