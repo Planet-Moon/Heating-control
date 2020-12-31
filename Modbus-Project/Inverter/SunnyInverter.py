@@ -5,21 +5,14 @@ import TypeConversion as TC
 def current_time():
     return datetime.now()
 
-class sma_Inverter:
+class sma_SolarInverter:
     def __init__(self, ipAddress):
         self.serialnumber = 0
         self.susyID = 0
         self.UnitID = 1
         self.Model = 0
-        self.operationHealth = 0
-        self.totalPower = 0 # W
-        self.todayEnergy = 0 # Wh
         self.timeZone = 0
         self.error = 0
-        test = TC.list_to_number([-1],signed=True)
-        test = TC.list_to_number([32767],signed=True)
-        test = TC.list_to_number([-32768],signed=True)
-
         self._change_IP(ipAddress)
 
         try:
@@ -32,31 +25,37 @@ class sma_Inverter:
 
     def _connect_IP(self):
         self.modbus = modbus_device(self.ipAddress)
-        
         self._Init_Modbus_Registers()
+
+    def _change_IP(self, ipAddress):
+        self.ipAddress = ipAddress
+        self._connect_IP()
 
     def _Init_Modbus_Registers(self):
 
         self.modbus.newRegister("UnitID", address=42109, length=4)
         UnitID_response = self.modbus.read("UnitID")
-        self.modbus.physicalSerialNumber = TC.list_to_number([UnitID_response[0], UnitID_response[1]], signed=False)
-        self.modbus.physicalSusyID = UnitID_response[2]
+        self.physicalSerialNumber = TC.list_to_number([UnitID_response[0], UnitID_response[1]], signed=False)
+        self.physicalSusyID = UnitID_response[2]
         self.modbus.UnitID = UnitID_response[3]
+        self.UnitID = UnitID_response[3]
 
         self.modbus.newRegister("SUSyIDModule", address=30003, length=2, signed=False)
-        # self.modbus.SUSyIDModule = self.modbus.read_value("SUSyIDModule")
+        self.SUSyIDModule = self.get_data("SUSyIDModule")
         
         self.modbus.newRegister("serialnumber", address=30057, length=2, signed=False)
-        # self.modbus.serialnumber = self.modbus.read_value("serialnumber")
+        self.serialnumber = self.get_data("serialnumber")
 
         self.modbus.newRegister("NameplateSerialnumber", address=30057, length=2, signed=False)
-        # self.modbus.NameplateSerialnumber = self.modbus.read_value("NameplateSerialnumber")
+        self.NameplateSerialnumber = self.get_data("NameplateSerialnumber")
 
         self.modbus.newRegister("Model", address=30053, length=2, signed=False)
-        # self.modbus.Model = self.modbus.read_value("Model")
+        self.Model = self.get_data("Model")
 
         self.modbus.newRegister("FirmwareVersion", address=40063, length=2, signed=False)
-        # self.modbus.FirmwareVersion = self.modbus.read_value("FirmwareVersion")
+        self.FirmwareVersion = self.get_data("FirmwareVersion")
+
+        self.modbus.newRegister("timeZone", address=40003, length=2)
 
         self.modbus.newRegister("operationHealth", address=30201, length=2)
 
@@ -64,35 +63,24 @@ class sma_Inverter:
 
         self.modbus.newRegister("todayEnergy", address=30535, length=2, type_="float", unit=" Wh")
         
-        self.modbus.newRegister("timeZone", address=40003, length=2)
-
         self.modbus.newRegister("LeistungEinspeisung", address=30867, length=2, signed=True, type_="float", unit=" W")
-        # self.LeistungEinspeisung = self.modbus.read_value("LeistungEinspeisung")
 
         self.modbus.newRegister("LeistungBezug", address=30865, length=2, signed=True, type_="float", unit=" W")
-        # self.LeistungBezug = self.modbus.read_value("LeistungBezug")
 
         self.modbus.newRegister("GesamtErtrag", address=30513, length=4, signed=False, type_="float", unit=" Wh")
-        # self.LeistungBezug = self.modbus.read_value("GesamtErtrag")
 
         self.modbus.newRegister("ZählerstandBezugszähler", address=30581, length=2, signed=False, type_="float", unit=" Wh")
-        # self.LeistungBezug = self.modbus.read_value("ZählerstandBezugszähler")
 
         self.modbus.newRegister("ZählerstandEinspeisezähler", address=30583, length=2, signed=False, type_="float", unit=" Wh")
-        # self.LeistungBezug = self.modbus.read_value("ZählerstandEinspeisezähler")
 
         # self.modbus.read_all()
         pass
     
-    def _change_IP(self, ipAddress):
-        self.ipAddress = ipAddress
-        self._connect_IP()
-
     def get_data(self,dataName):
         if dataName == "all":
             return self.modbus.read_all()
         else:
-            return [[dataName, self.modbus.read_value(dataName)]]
+            return self.modbus.read_value(dataName)
 
     def get_deltaPower(self):
         value = self.modbus.read_value("LeistungEinspeisung") - self.modbus.read_value("LeistungBezug")
@@ -106,3 +94,39 @@ class sma_Inverter:
             interString.append("{}: {}{}".format(*i)) 
         string = "\n".join(interString)
         return string
+
+    @property
+    def operationHealth(self):
+        return self.get_data("operationHealth")
+    
+    @property
+    def totalPower(self):
+        return self.get_data("totalPower")
+    
+    @property
+    def todayEnergy(self):
+        return self.get_data("todayEnergy")
+
+    @property
+    def LeistungEinspeisung(self):
+        return self.get_data("LeistungEinspeisung")
+
+    @property
+    def LeistungBezug(self):
+        return self.get_data("LeistungBezug")
+
+    @property
+    def GesamtErtrag(self):
+        return self.get_data("GesamtErtrag")
+
+    @property
+    def ZaehlerstandBezugszaehler(self):
+        return self.get_data("ZählerstandBezugszähler")
+
+    @property
+    def ZaehlerstandEinspeiseZaehler(self):
+        return self.get_data("ZählerstandEinspeisezähler")
+
+class sma_BatteryInverter(sma_SolarInverter):
+    def __init__(self, ipAddress):
+        pass
