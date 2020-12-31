@@ -46,20 +46,21 @@ class modbus_device(object):
     def read_value(self, name: str):
         try:
             value = round(float(TC.list_to_number(self.read(name), signed=self.register[name].signed) * self.register[name].factor), 2)
-            value_type = self.register[name].type
-            if value_type == "float":
-                self.register[name].value = float(value)
-            elif value_type == "int":
-                self.register[name].value = int(value)
-            elif value_type == "bool":
-                if value == 0.0:
-                    self.register[name].value = False
-                else:
-                    self.register[name].value = True
-            return self.register[name].value
         except Exception as e:
             print("Error reading value from register "+name) 
             print("Exeption: "+str(e))
+            
+        value_type = self.register[name].type
+        if value_type == "float":
+            self.register[name].value = float(value)
+        elif value_type == "int":
+            self.register[name].value = int(value)
+        elif value_type == "bool":
+            if value == 0.0:
+                self.register[name].value = False
+            else:
+                self.register[name].value = True
+        return self.register[name].value
 
     def write_register(self, name: str, value: int):
         try:
