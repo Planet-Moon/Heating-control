@@ -121,6 +121,7 @@ class modbus_device(object):
             pass
 
         def write(self, client, value: int, unitID: int):
+            value = int(value / self.factor)
             if isinstance(value, list):
                 if not len(value) > self.length:
                     rq = client.write_registers(self.address, value, unit=unitID)
@@ -128,3 +129,4 @@ class modbus_device(object):
                     raise Exception("Value too long for register. length = "+str(self.length)) 
             else:
                 rq = client.write_registers(self.address, value, unit=unitID)
+            self.value = value
