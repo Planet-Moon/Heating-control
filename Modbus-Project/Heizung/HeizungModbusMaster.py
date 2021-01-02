@@ -22,9 +22,10 @@ dataFileName = None
 args = None
 logFileName = None
 bot = None
+HeizstabData = None
 
 def readConfig(configFilePath):
-    global bot_token, modbusDict, smaDict, dataFileName, args, logFileName
+    global bot_token, modbusDict, smaDict, dataFileName, args, logFileName, HeizstabData
     data = None
     try:
         with open(configFilePath, "r", encoding='utf-8') as outfile:
@@ -66,6 +67,9 @@ def readConfig(configFilePath):
         for i in smaData:
             smaDict["Batterie"][i.get("name")] = sma_BatteryInverter(i.get("ip"))
             print(smaDict["Batterie"][i.get("name")])
+
+        HeizstabData = data.get("Heizstab")
+        modbusDict.get("Heizung").write_register("Heizstab_SollTemp", int(HeizstabData.get("Solltemp")))
 
         dataFilePath = data.get("dataFile").get("path")
         dataFileName = data.get("dataFile").get("name")
@@ -325,7 +329,24 @@ def argsParse():
     parser.add_argument("--noBot", help="Don't run telegramBot", action="store_true")
     args = parser.parse_args()
 
-def main():
+def SolarPowerToHeater():
+    totalSolarPower = 0
+    solarModbus = smaDict.get("Solar")
+    heizungModbus = modbusDict.get("Heizung")
+    heizungModbus.write_register("Heizstab_Ein_nAus", 1)
+    for i in solarModbus:
+        totalSolarPower += solarModbus.get(i).LeistungEinspeisung
+    PowerLevels = HeizstabData.get("Leistungsstufen")
+    for i in range(len(PowerLevels)-1,-1,-1):
+        if float(PowerLevels[i].get("Leistung")) <= totalSolarPower:
+            if args.debug:
+                print("powerlevel is "+PowerLevels[i].get("Leistung"))
+            for j in range(len(HeizstabData.get("modbusRegister"))):
+                heizungModbus.write_register(HeizstabData.get("modbusRegister")[j], int(PowerLevels[i].get("modbusRegister")[j]))
+            break
+    pass
+
+def init():
     global telegramClients
     readConfig("config.json")
     
@@ -338,17 +359,18 @@ if __name__ == "__main__":
     argsParse()
     if args.debug:
         chdir("Modbus-Project/Heizung")
-    main()
-    while not args.noBot:
-        modbusDict.get("Heizung").read_value("SpeicherOben")
-        for i in telegramClients.clients:
-            notifyMessage = ""
-            checkClient = telegramClients.clients[i]
-            notifyMessage += checkClient.notify(checkClient.shower)
-            if notifyMessage:
-                bot.sendMessage(i, notifyMessage)
-        telegramClients.saveToFile()
-        sleep(600)
-    if args.noBot:
-        print(str(modbusDict.get("Heizung").read_all()))
-        print("Done.")
+    init()
+    while True:
+        if not args.noBot:
+            modbusDict.get("Heizung").read_value("SpeicherOben")
+            for i in telegramClients.clients:
+                notifyMessage = ""
+                checkClient = telegramClients.clients[i]
+                notifyMessage += checkClient.notify(checkClient.shower)
+                if notifyMessage:
+                    bot.sendMessage(i, notifyMessage)
+            telegramClients.saveToFile()
+        else:
+            print(str(modbusDict.get("Heizung").read_all()))
+        SolarPowerToHeater()
+        sleep(60)
