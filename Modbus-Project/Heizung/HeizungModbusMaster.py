@@ -335,7 +335,8 @@ def SolarPowerToHeater():
     heizungModbus = modbusDict.get("Heizung")
     heizungModbus.write_register("Heizstab_Ein_nAus", 1)
     for i in solarModbus:
-        totalSolarPower += solarModbus.get(i).LeistungEinspeisung
+        totalSolarPower += solarModbus.get(i).LeistungEinspeisung # LeistungEinspeisung identisch bei allen Wechselrichtern, wird vom Stromzähler gelesen
+        break # nur der Wert des ersten Wechselrichters wird verwendet
     PowerLevels = HeizstabData.get("Leistungsstufen")
     for i in range(len(PowerLevels)-1,-1,-1):
         if float(PowerLevels[i].get("Leistung")) <= totalSolarPower:
