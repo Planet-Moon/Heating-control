@@ -35,7 +35,11 @@ def readConfig(configFilePath):
         writeLog(2, "Error reading from file "+str(e))
     if data:
         if not args.noBot:
-            bot_token = data.get("TelegramBot").get("token")
+            try:
+                bot_token = data.get("TelegramBot").get("token")
+            except:
+                bot_token = None
+                args.noBot = True
 
         modbusDict = {}
         modbusData = data.get("Modbus")
