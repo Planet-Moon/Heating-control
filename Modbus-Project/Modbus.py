@@ -37,6 +37,9 @@ class modbus_device(object):
         else:
             del self.register[name]
 
+    def removeRegister(self, name: str):
+        del self.register[name]
+
     def read(self, name: str):
         try:
             return self.register[name].get_data(self.client, self.UnitID)
