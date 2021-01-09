@@ -160,6 +160,12 @@ class sma_BatteryInverter(sma_SolarInverter):
         cls.modbus.newRegister("MinimaleBreiteTiefenEntladeschutz", address=40721, length=2, signed=False, type_="int", unit="")
         pass
 
+    @classmethod
+    def reboot(cls):
+        cls.modbus.newRegister("reboot", address=40077, length=2, signed=False, type_="int", unit="")
+        cls.modbus.write_register("reboot", 1146)
+        cls.modbus.removeRegister("reboot")
+
     @property
     def Batteriestrom(self):
         return self.get_data("Batteriestrom")
