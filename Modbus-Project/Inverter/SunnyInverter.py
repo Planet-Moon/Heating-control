@@ -151,6 +151,13 @@ class sma_BatteryInverter(sma_SolarInverter):
         cls.modbus.newRegister("MomentaneBatterieentladung", address=31395, length=2, signed=False, type_="float", unit=" W")
         cls.modbus.newRegister("Batterieladung", address=31397, length=4, signed=False, type_="float", unit=" Wh")
         cls.modbus.newRegister("Batterieentladung", address=31401, length=4, signed=False, type_="float", unit=" Wh")
+        cls.modbus.newRegister("UntereEntladegrenzeBeiEigenverbrauch", address=40073, length=2, signed=False, type_="int", unit="")
+        cls.modbus.newRegister("BatterieStatus", address=34659, length=2, signed=False, type_="int", unit="")
+        cls.modbus.newRegister("BatterieZustand", address=31391, length=2, signed=False, type_="int", unit="")
+        cls.modbus.newRegister("BatterieBetriebsstatus", address=30955, length=2, signed=False, type_="int", unit="")
+        cls.modbus.newRegister("BatterieNutzungsBereichStatus", address=31057, length=2, signed=False, type_="int", unit="")
+        cls.modbus.newRegister("UntereGrenzeTiefenendladungVorAbschaltung", address=40719, length=2, signed=False, type_="int", unit="")
+        cls.modbus.newRegister("MinimaleBreiteTiefenEntladeschutz", address=40721, length=2, signed=False, type_="int", unit="")
         pass
 
     @property
