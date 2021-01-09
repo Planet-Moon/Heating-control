@@ -77,6 +77,8 @@ class sma_SolarInverter:
 
         cls.modbus.newRegister("ZählerstandEinspeisezähler", address=30583, length=2, signed=False, type_="float", unit=" Wh")
 
+        cls.modbus.newRegister("SpeedwireEnable", address=40157, length=2, signed=False, type_="int", unit="")
+
         # cls.modbus.read_all()
         pass
     
