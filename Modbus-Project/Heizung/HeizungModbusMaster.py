@@ -63,14 +63,15 @@ def readConfig(configFilePath):
         smaData = data.get("SMA_Inverter").get("Solar")
         counter = 0
         for i in smaData:
-            smaDict["Solar"][i.get("name")] = sma_SolarInverter(i.get("ip"))
-            print(smaDict["Solar"][i.get("name")])
+            smaDict["Solar"][i.get("name")] = sma_SolarInverter(str(i.get("ip")))
+            print(str(smaDict["Solar"][i.get("name")])+", ip: "+smaDict["Solar"][i.get("name")].ipAddress)
             counter += 1
 
         smaData = data.get("SMA_Inverter").get("Batterie")
         for i in smaData:
-            smaDict["Batterie"][i.get("name")] = sma_BatteryInverter(i.get("ip"))
-            print(smaDict["Batterie"][i.get("name")])
+            smaDict["Batterie"][i.get("name")] = sma_BatteryInverter(str(i.get("ip")))
+            print(str(smaDict["Batterie"][i.get("name")])+", ip: "+smaDict["Batterie"][i.get("name")].ipAddress)
+            pass
 
         HeizstabData = data.get("Heizstab")
         modbusDict.get("Heizung").write_register("Heizstab_SollTemp", int(HeizstabData.get("Solltemp")))
