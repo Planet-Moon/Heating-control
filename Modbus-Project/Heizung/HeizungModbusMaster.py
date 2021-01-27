@@ -300,7 +300,16 @@ def telegramBotHandle(msg):
             interString = []
             for i in response:
                 interString.append("{}: {}{}".format(*i)) 
-            send_string = "\n".join(interString)
+            send_string += "Heizung:\n"
+            send_string += "\n".join(interString)
+            
+            send_string += "\n------------------\n"
+            send_string += "Solar:\n"
+            send_string += smaDict.get("Solar").get("128").read_all()
+
+            send_string += "\n------------------\n"
+            send_string += "Batterie:\n"
+            send_string += smaDict.get("Batterie").get("113").read_all()
         except:
             send_string += "Error reading modbus"
         pass
