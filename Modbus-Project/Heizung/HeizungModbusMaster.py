@@ -67,6 +67,7 @@ def readConfig(configFilePath):
             print(str(smaDict["Solar"][i.get("name")])+", ip: "+smaDict["Solar"][i.get("name")].ipAddress)
             counter += 1
 
+        sleep(5)
         smaData = data.get("SMA_Inverter").get("Batterie")
         for i in smaData:
             smaDict["Batterie"][i.get("name")] = sma_BatteryInverter(str(i.get("ip")))
@@ -299,7 +300,7 @@ def telegramBotHandle(msg):
             response = modbusDict.get("Heizung").read_all()
             interString = []
             for i in response:
-                interString.append("{}: {}{}".format(*i)) 
+                interString.append("{}: {}{}".format(*i))
             send_string += "Heizung:\n"
             send_string += "\n".join(interString)
             
