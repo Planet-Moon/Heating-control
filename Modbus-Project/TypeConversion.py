@@ -22,8 +22,10 @@ def list_to_number(number, length=2, signed=False): #little endian
     else:
         mask = 1 << 15 + number_length * 16
         if unsigned_number & mask:
-            signed_Number = unsigned_number - ~mask
+            # negative
+            signed_Number = (unsigned_number & ~mask) - mask
         else:
+            # positive
             signed_Number = unsigned_number & ~mask
         return signed_Number
 
@@ -53,11 +55,11 @@ def number_to_wordList(number, signed=False, size=1):
     return returnList
 
 def main():
-    testList = [100, 1, 0, 92]
+    testList = [32768, 240]
     print("testList:"+str(testList))
-    testNumber = list_to_number(testList)
+    testNumber = list_to_number(testList, signed=True)
     print("testNumber:"+str(testNumber))
-    testList = number_to_wordList(testNumber, size=4)
+    testList = number_to_wordList(testNumber, signed=True, size=len(testList))
     print("testList:"+str(testList))
 
 
