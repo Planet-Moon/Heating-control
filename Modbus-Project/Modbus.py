@@ -17,6 +17,7 @@ class modbus_device(object):
         else:
             self.client = ModbusClient(self.ipAddress)
         self.UnitID = unitID
+        self.connected = None
         self.connect()
         self.register = {}
         pass
