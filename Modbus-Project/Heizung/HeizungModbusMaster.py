@@ -387,5 +387,22 @@ if __name__ == "__main__":
             telegramClients.saveToFile()
         else:
             print(str(modbusDict.get("Heizung").read_all()))
+        
+        current_solar_inverter = smaDict.get("Solar").get("128")
+        LeistungEinspeisung = current_solar_inverter.LeistungEinspeisung 
+        LeistungBezug = current_solar_inverter.LeistungBezug
+        LeistungSolar = 0
+        for i in smaDict.get("Solar"):
+            current_solar_inverter = smaDict.get("Solar").get(i)
+            current_power = current_solar_inverter.power
+            if current_power > 0:
+                LeistungSolar += current_power
+            break
+        if LeistungEinspeisung == 0:
+            aktuellerVerbrauch = LeistungBezug + LeistungSolar
+        elif LeistungEinspeisung > 0:
+            aktuellerVerbrauch = LeistungSolar - LeistungEinspeisung
+        modbusDict.get("Heizung").write_register("AktuellerVerbrauch", aktuellerVerbrauch)
+
         SolarPowerToHeater()
-        sleep(60)
+        sleep(180)
