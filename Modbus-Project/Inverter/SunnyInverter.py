@@ -63,7 +63,9 @@ class sma_SolarInverter:
 
         self.modbus.newRegister("operationHealth", address=30201, length=2)
 
-        self.modbus.newRegister("totalPower", address=30775, length=2, signed=True, type_="float", unit=" W")
+        self.modbus.newRegister("power", address=30775, length=2, signed=True, type_="float", unit=" W")
+
+        self.modbus.newRegister("watt", address=30773, length=2, signed=True, type_="float", unit=" W")
 
         self.modbus.newRegister("todayEnergy", address=30535, length=2, type_="float", unit=" Wh")
         
@@ -109,8 +111,12 @@ class sma_SolarInverter:
         return self.get_data("operationHealth")
     
     @property
-    def totalPower(self):
-        return self.get_data("totalPower")
+    def power(self):
+        return self.get_data("power")
+
+    @property
+    def watt(self):
+        return self.get_data("watt")
     
     @property
     def todayEnergy(self):
