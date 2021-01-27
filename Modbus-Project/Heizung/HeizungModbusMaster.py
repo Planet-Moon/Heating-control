@@ -372,7 +372,7 @@ if __name__ == "__main__":
             for i in telegramClients.clients:
                 notifyMessage = ""
                 checkClient = telegramClients.clients[i]
-                notifyMessage += checkClient.notify(checkClient.shower)
+                # notifyMessage += checkClient.notify(checkClient.shower)
                 if notifyMessage:
                     bot.sendMessage(i, notifyMessage)
             telegramClients.saveToFile()
