@@ -115,8 +115,8 @@ class sma_SolarInverter:
         return self.get_data("power")
 
     @property
-    def watt(self):
-        return self.get_data("watt")
+    def dcwatt(self):
+        return self.get_data("dcwatt")
     
     @property
     def todayEnergy(self):
