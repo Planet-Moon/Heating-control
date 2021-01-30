@@ -65,7 +65,7 @@ class sma_SolarInverter:
 
         self.modbus.newRegister("power", address=30775, length=2, signed=True, type_="float", unit=" W")
 
-        self.modbus.newRegister("watt", address=30773, length=2, signed=True, type_="float", unit=" W")
+        self.modbus.newRegister("dcwatt", address=30773, length=2, signed=True, type_="float", unit=" W")
 
         self.modbus.newRegister("todayEnergy", address=30535, length=2, type_="float", unit=" Wh")
         
