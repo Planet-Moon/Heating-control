@@ -388,8 +388,9 @@ if __name__ == "__main__":
             telegramClients.saveToFile()
         else:
             print(str(modbusDict.get("Heizung").read_all()))
-        
-        current_solar_inverter = smaDict.get("Solar").get("128")
+            
+        for key, value in smaDict.get("Solar").items():
+            current_solar_inverter = value
         LeistungEinspeisung = current_solar_inverter.LeistungEinspeisung 
         LeistungBezug = current_solar_inverter.LeistungBezug
         LeistungSolar = 0
