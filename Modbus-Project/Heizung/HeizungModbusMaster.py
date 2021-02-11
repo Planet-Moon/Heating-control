@@ -12,6 +12,7 @@ import urllib3
 from re import findall as RegexFindAll
 import codecs
 from SunnyInverter import sma_SolarInverter, sma_BatteryInverter
+import sys
 
 # Define globals
 telegramClients = None
@@ -31,8 +32,8 @@ def readConfig(configFilePath):
         with open(configFilePath, "r", encoding='utf-8') as outfile:
             data = json.load(outfile)
     except Exception as e:
-        print("Error reading from file" + str(e))
-        writeLog(2, "Error reading from file "+str(e))
+        print("Error reading from file: " + str(e))
+        sys.exit(-1)
     if data:
         if not args.noBot:
             try:
