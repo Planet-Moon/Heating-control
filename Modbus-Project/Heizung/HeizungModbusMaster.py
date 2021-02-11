@@ -3,7 +3,7 @@ import TypeConversion as TC
 from time import sleep
 import argparse
 import json
-from os import path, chdir
+import os
 from datetime import datetime, timedelta, time
 import telepot
 from telepot.loop import MessageLoop
@@ -54,7 +54,8 @@ def readConfig(configFilePath):
                     int(j.get("length")),
                     factor=float(j.get("factor")),
                     type_=j.get("type"),
-                    unit=j.get("unit"))
+                    unit=j.get("unit"),
+                    signed=bool(j.get("signed"))
                 print(modbusDict[i].read_string(j.get("name")))
                 pass
 
@@ -394,7 +395,7 @@ def calculate_total_power_draw():
 if __name__ == "__main__":
     argsParse()
     if args.debug:
-        chdir("Modbus-Project/Heizung")
+        os.chdir(os.path.dirname(os.path.abspath(__file__)))
     init()
     while True:
         if not args.noBot:
