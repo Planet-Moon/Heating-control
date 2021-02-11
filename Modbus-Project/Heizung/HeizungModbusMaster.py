@@ -55,8 +55,8 @@ def readConfig(configFilePath):
                     type_=j.get("type"),
                     unit=j.get("unit"))
                 print(modbusDict[i].read_string(j.get("name")))
-                pass  
-        
+                pass
+
         smaDict = {}
         smaDict["Solar"] = {}
         smaDict["Batterie"] = {}
@@ -256,7 +256,7 @@ class telegramClientsClass:
 def clientsHandle(msg):
     try:
         last_name = msg['chat']['last_name']
-    except: 
+    except:
         last_name = ""
     telegramClients.newClient(id=str(msg['chat']['id']),
         firstName=msg['chat']['first_name'],
@@ -291,19 +291,20 @@ def telegramBotHandle(msg):
     commandDict = parseTelegramCommand(messageText)
     currentClient = telegramClients.clients[chat_id]
     print(str(datetime.now())+': Got message: '+str(messageText)+" from chatID "+chat_id)
-    writeLog(3, "Got message: \""+str(messageText)+"\" from chatID "+chat_id) 
+    writeLog(3, "Got message: \""+str(messageText)+"\" from chatID "+chat_id)
 
     send_string = ""
 
     if "/all" in commandDict:
-        try: 
+        calculate_total_power_draw()
+        try:
             response = modbusDict.get("Heizung").read_all()
             interString = []
             for i in response:
                 interString.append("{}: {}{}".format(*i))
             send_string += "Heizung:\n"
             send_string += "\n".join(interString)
-            
+
             send_string += "\n------------------\n"
             send_string += "Solar:\n"
             send_string += smaDict.get("Solar").get("128").read_all()
@@ -328,7 +329,7 @@ def telegramBotHandle(msg):
         else:
             send_string += "Current shower temperature is "+str(currentClient.shower.notifyTemperature)+"°C\n"
         pass
-    
+
     if not send_string:
         send_string = "not recognized command"
 
@@ -365,11 +366,29 @@ def SolarPowerToHeater():
 def init():
     global telegramClients
     readConfig("config.json")
-    
+
     if not args.noBot:
         telegramClients = telegramClientsClass()
         telegramBotInit()
     pass
+
+def calculate_total_power_draw():
+    for key, value in smaDict.get("Solar").items():
+        current_solar_inverter = value
+    LeistungEinspeisung = current_solar_inverter.LeistungEinspeisung
+    LeistungBezug = current_solar_inverter.LeistungBezug
+    LeistungSolar = 0
+    for i in smaDict.get("Solar"):
+        current_solar_inverter = smaDict.get("Solar").get(i)
+        current_power = current_solar_inverter.power
+        if current_power > 0:
+            LeistungSolar += current_power
+        break
+    if LeistungEinspeisung == 0:
+        aktuellerVerbrauch = LeistungBezug + LeistungSolar
+    elif LeistungEinspeisung > 0:
+        aktuellerVerbrauch = LeistungSolar - LeistungEinspeisung
+    modbusDict.get("Heizung").write_register("AktuellerVerbrauch", aktuellerVerbrauch)
 
 if __name__ == "__main__":
     argsParse()
@@ -388,23 +407,8 @@ if __name__ == "__main__":
             telegramClients.saveToFile()
         else:
             print(str(modbusDict.get("Heizung").read_all()))
-            
-        for key, value in smaDict.get("Solar").items():
-            current_solar_inverter = value
-        LeistungEinspeisung = current_solar_inverter.LeistungEinspeisung 
-        LeistungBezug = current_solar_inverter.LeistungBezug
-        LeistungSolar = 0
-        for i in smaDict.get("Solar"):
-            current_solar_inverter = smaDict.get("Solar").get(i)
-            current_power = current_solar_inverter.power
-            if current_power > 0:
-                LeistungSolar += current_power
-            break
-        if LeistungEinspeisung == 0:
-            aktuellerVerbrauch = LeistungBezug + LeistungSolar
-        elif LeistungEinspeisung > 0:
-            aktuellerVerbrauch = LeistungSolar - LeistungEinspeisung
-        modbusDict.get("Heizung").write_register("AktuellerVerbrauch", aktuellerVerbrauch)
+
+        calculate_total_power_draw()
 
         SolarPowerToHeater()
         sleep(180)
