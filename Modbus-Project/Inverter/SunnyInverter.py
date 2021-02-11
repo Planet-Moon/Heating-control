@@ -166,6 +166,7 @@ class sma_BatteryInverter(sma_SolarInverter):
         self.modbus.newRegister("BatterieNutzungsBereichStatus", address=31057, length=2, signed=False, type_="int", unit="")
         self.modbus.newRegister("UntereGrenzeTiefenendladungVorAbschaltung", address=40719, length=2, signed=False, type_="int", unit="")
         self.modbus.newRegister("MinimaleBreiteTiefenEntladeschutz", address=40721, length=2, signed=False, type_="int", unit="")
+        self.modbus.newRegister("BreiteErhaltungBatterieladezustand", address=40725, length=2, signed=False, type_="int", unit=" %")
         pass
 
     #@classmethod
@@ -209,3 +210,7 @@ class sma_BatteryInverter(sma_SolarInverter):
     @property
     def Batterieentladung(self):
         return self.get_data("Batterieentladung")
+
+    @property
+    def BreiteErhaltungBatterieladezustand(self):
+        return self.get_data("BreiteErhaltungBatterieladezustand")
