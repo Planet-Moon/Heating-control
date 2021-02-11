@@ -55,7 +55,7 @@ def readConfig(configFilePath):
                     factor=float(j.get("factor")),
                     type_=j.get("type"),
                     unit=j.get("unit"),
-                    signed=bool(j.get("signed"))
+                    signed=bool(j.get("signed")))
                 print(modbusDict[i].read_string(j.get("name")))
                 pass
 
