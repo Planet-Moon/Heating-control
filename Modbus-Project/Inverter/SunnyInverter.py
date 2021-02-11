@@ -95,6 +95,12 @@ class sma_SolarInverter:
         data = self.modbus.read_all()
         interString = []
         for i in data:
+            # TODO: add to modbus register
+            if i[0] == "power" and i[1] < 0:
+                i[1] = 0
+            if i[0] == "dcwatt" and i[1] < 0:
+                i[1] = 0
+            # end TODO --------------------
             interString.append("{}: {}{}".format(*i))
         string = "\n".join(interString)
         return string
