@@ -107,13 +107,6 @@ class Inverter(sma_SolarInverter):
 def main():
     sunny_inverter = Inverter("192.168.178.128")
     goe_charger = GOE_Charger('http://192.168.178.106')
-    print(goe_charger.amp)
-    if goe_charger.amp == "16":
-        goe_charger._set("amp","6")
-    else:
-        goe_charger._set("amp","16")
-    print(goe_charger.amp)
-    print(goe_charger.power_to_amp(4200))
     goe_charger.init_amp_from_power(sunny_inverter.modbus.read_value)
     goe_charger.start_controller(update_period=180)
 
