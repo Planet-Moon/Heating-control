@@ -6,7 +6,7 @@ def current_time():
     return datetime.now()
 
 class sma_SolarInverter:
-    def __init__(self, ipAddress):
+    def __init__(self, ipAddress:str):
         self.serialnumber = 0
         self.susyID = 0
         self.UnitID = 1
