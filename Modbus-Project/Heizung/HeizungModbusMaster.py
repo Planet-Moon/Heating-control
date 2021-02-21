@@ -377,20 +377,24 @@ def init():
 def calculate_total_power_draw():
     for key, value in smaDict.get("Solar").items():
         current_solar_inverter = value
-    LeistungEinspeisung = current_solar_inverter.LeistungEinspeisung
-    LeistungBezug = current_solar_inverter.LeistungBezug
-    LeistungSolar = 0
+    leistung_einspeisung = current_solar_inverter.LeistungEinspeisung
+    leistung_bezug = current_solar_inverter.LeistungBezug
+    leistung_solar = 0
     for i in smaDict.get("Solar"):
-        current_solar_inverter = smaDict.get("Solar").get(i)
+        current_solar_inverter = smaDict.get("Solar")[i]
         current_power = current_solar_inverter.power
         if current_power > 0:
-            LeistungSolar += current_power
-        break
-    if LeistungEinspeisung == 0:
-        aktuellerVerbrauch = LeistungBezug + LeistungSolar
-    elif LeistungEinspeisung > 0:
-        aktuellerVerbrauch = LeistungSolar - LeistungEinspeisung
-    modbusDict.get("Heizung").write_register("AktuellerVerbrauch", aktuellerVerbrauch)
+            leistung_solar += current_power
+
+    leistung_batterie = 0
+    for i in smaDict.get("Batterie"):
+        current_battery_inverter = smaDict.get("Batterie")[i]
+        current_power = current_battery_inverter.power
+        if current_power > 0:
+            leistung_batterie += current_power
+
+    aktueller_verbrauch = leistung_bezug + leistung_solar + leistung_batterie - leistung_einspeisung
+    modbusDict.get("Heizung").write_register("AktuellerVerbrauch", aktueller_verbrauch)
 
 if __name__ == "__main__":
     argsParse()
