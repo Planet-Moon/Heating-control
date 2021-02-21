@@ -282,7 +282,7 @@ def parseTelegramCommand(messageText):
     commandDict = {}
     current_command = ""
     for i in messageTextList:
-        command_temp = RegexFindAll("^\/[a-z0-9]*(?=[\S\@])", i)
+        command_temp = RegexFindAll(r"^\/[a-z0-9]*(?=[\s\@])?", i)
         if command_temp:
             current_command = command_temp[0]
             commandDict[current_command] = {}
