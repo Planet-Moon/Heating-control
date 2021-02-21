@@ -115,9 +115,9 @@ class telegramClientsClass:
         self.readFromFile()
         pass
 
-    def newClient(self, id, firstName, lastName, timeAdded):
+    def newClient(self, id:str, timeAdded:int, firstName="", lastName="", groupName=""):
         if not self.clientExists(id):
-            self.clients[id] = self.telegramChatIDClass(firstName, lastName, timeAdded)
+            self.clients[id] = self.telegramChatIDClass(timeAdded, firstName, lastName, groupName)
 
     def clientExists(self, id):
         if id in self.clients:
@@ -136,7 +136,10 @@ class telegramClientsClass:
         if data:
             for i in data["clients"]:
                 j = data["clients"][i]
-                self.newClient(id=i, firstName=j["firstName"], lastName=j["lastName"], timeAdded=j["timeAdded"])
+                try:
+                    self.newClient(id=i, firstName=j["firstName"], lastName=j["lastName"], timeAdded=j["timeAdded"])
+                except:
+                    self.newClient(id=i, groupName=j["groupName"], timeAdded=j["timeAdded"])
                 if "shower" in j:
                     k = j["shower"]
                     self.clients[i].shower = self.clients[i].createShowerClass()
@@ -167,9 +170,12 @@ class telegramClientsClass:
         return retVal
 
     class telegramChatIDClass:
-        def __init__(self, firstName, lastName, timeAdded):
-            self.firstName = firstName
-            self.lastName = lastName
+        def __init__(self, timeAdded:int, firstName="", lastName="", groupName=""):
+            if firstName:
+                self.firstName = firstName
+                self.lastName = lastName
+            elif groupName:
+                self.groupName = groupName
             self.timeAdded = timeAdded
             self.nightModeStart = str(time(hour=23))
             self.nightModeEnd = str(time(hour=6))
@@ -256,22 +262,27 @@ class telegramClientsClass:
                 self.modbusRegisterName = "SpeicherOben"
 
 def clientsHandle(msg):
-    try:
-        last_name = msg['chat']['last_name']
-    except:
-        last_name = ""
-    telegramClients.newClient(id=str(msg['chat']['id']),
-        firstName=msg['chat']['first_name'],
-        lastName=last_name,
-        timeAdded=msg["date"])
-    pass
+    chat_type = msg['chat']['type']
+    if chat_type == 'private':
+        try:
+            last_name = msg['chat']['last_name']
+        except:
+            last_name = ""
+        telegramClients.newClient(id=str(msg['chat']['id']),
+            firstName=msg['chat']['first_name'],
+            lastName=last_name,
+            timeAdded=msg["date"])
+    if chat_type == 'group':
+        telegramClients.newClient(id=str(msg['chat']['id']),
+            groupName=msg['chat']['title'],
+            timeAdded=msg["date"])
 
 def parseTelegramCommand(messageText):
     messageTextList = messageText.split(" ")
     commandDict = {}
     current_command = ""
     for i in messageTextList:
-        command_temp = RegexFindAll("^\/\S+", i)
+        command_temp = RegexFindAll("^\/[a-z0-9]*(?=[\S\@])", i)
         if command_temp:
             current_command = command_temp[0]
             commandDict[current_command] = {}
@@ -288,7 +299,8 @@ def telegramBotHandle(msg):
     global bot
     chat_id = str(msg['chat']['id'])
     messageText = msg['text']
-    content_type, _, _ = telepot.glance(msg)
+    content_type, a, b = telepot.glance(msg)
+    del a, b
     clientsHandle(msg)
     commandDict = parseTelegramCommand(messageText)
     currentClient = telegramClients.clients[chat_id]
