@@ -2,6 +2,7 @@ import requests
 import json
 import threading
 import time
+import re
 
 class TelegramBot:
     def __init__(self, token):
@@ -41,6 +42,22 @@ class TelegramBot:
         message_obj["timeout"] = timeout
         r = self._post("getUpdates", message_obj)
         return r
+
+    def find_commands(self, message_text):
+        pattern = r'\/[a-z][a-z1-9]{3,}(?:[\s\=]\w+)?\b'
+        r = re.findall(pattern,message_text)
+        ret_val = {}
+        for i in range(len(r)):
+            command = r[i]
+            command = command.split("=")
+            if len(command) == 1:
+                command = command[0].split(" ")
+            if len(command) > 1:
+                command[0] = command[0].replace("/","")
+                ret_val[command[0]] = command[1]
+            else:
+                ret_val[command[0]] = None
+        return ret_val
 
     def getChat(self, chat_id):
         message_obj = {}
@@ -93,12 +110,14 @@ class TelegramBot:
             self.last_update = updates[-1]["update_id"]
             messages = []
             for i in updates:
-                messages.append(i["message"])
+                i["commands"] = self.find_commands(i["message"]["text"])
+                messages.append({"message":i["message"], "commands":i["commands"]})
             return messages
 
     def loop(self,update_period):
         while True:
             time.sleep(update_period)
+            return
 
     def start(self,update_period=120):
         thread = threading.Thread(target=self.loop, args=(update_period,))
