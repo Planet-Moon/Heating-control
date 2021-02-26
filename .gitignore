@@ -1,4 +1,8 @@
-Modbus-Project/telegrambot.cfg
-Modbus-Project/nohup.out
+*.pyc
+data.json
+telegrambot.cfg
+config.json
+nohup.out
+!configTemplate.cfg
+*.old
 *.log
-/semp

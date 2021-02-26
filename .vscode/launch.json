@@ -5,10 +5,21 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "MQTTClient",
+            "name": "Python: Inverter IP",
             "type": "python",
             "request": "launch",
-            "program": "${workspaceFolder}/Modbus-Project/Heizung/MQTTClient.py",
+            "program": "ReadInverter.py",
+            "args": ["-ip=192.168.178.113"],
+            "console": "integratedTerminal"
+        },
+        {
+            "name": "Python: Current File Help",
+            "type": "python",
+            "request": "launch",
+            "program": "${file}",
+            "args": [
+                "--help"
+            ],
             "console": "integratedTerminal"
         },
         {
@@ -17,27 +28,6 @@
             "request": "launch",
             "program": "${file}",
             "console": "integratedTerminal"
-        },
-        {
-            "name": "Heizung/HeizungModbusMaster",
-            "type": "python",
-            "request": "launch",
-            "program": "${workspaceFolder}/Modbus-Project/Heizung/HeizungModbusMaster.py",
-            "console": "integratedTerminal",
-            //"args": ["--noBot", "--debug"]
-            "args": [
-                "--debug"
-            ]
-        },
-        {
-            "name": "readInverter",
-            "type": "python",
-            "request": "launch",
-            "program": "${workspaceFolder}/Modbus-Project/Inverter/ReadInverter.py",
-            "console": "integratedTerminal",
-            "args": [
-                "--debug"
-            ]
         }
     ]
 }
