@@ -131,7 +131,7 @@ class telegramClientsClass:
             with open(self.fileName, "r") as outfile:
                 data = json.load(outfile)
         except Exception as e:
-            print("Error reading from file" + str(e))
+            print("Error reading from file " + str(e))
             writeLog(2, "Error reading from file "+str(e))
         if data:
             for i in data["clients"]:
@@ -406,7 +406,11 @@ def calculate_total_power_draw():
     daten = requests.get(_pikocreds.address,auth=HTTPBasicAuth(_pikocreds.usr, _pikocreds.pwd))
     text = daten.text
     liste = text.split("\r\n")
-    piko_pwr = int(re.findall("\d+",liste[45])[0])
+    try:
+        piko_pwr = int(re.findall("\d+",liste[45])[0])
+    except:
+        piko_pwr = 0
+
     del text, liste, daten
     leistung_solar += piko_pwr
 
