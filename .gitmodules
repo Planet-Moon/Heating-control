@@ -1,0 +1,9 @@
+[submodule "libs/modbus"]
+	path = libs/modbus
+	url = https://github.com/Planet-Moon/Modbus.git
+[submodule "libs/modbus-server"]
+	path = libs/modbus-server
+	url = https://github.com/Planet-Moon/Modbus-server.git
+[submodule "libs/sma-devices"]
+	path = libs/sma-devices
+	url = https://github.com/Planet-Moon/SMA_devices.git
