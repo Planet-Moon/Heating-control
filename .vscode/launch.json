@@ -5,6 +5,14 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "name": "ModbusHeizungMaster",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/HeizungModbusMaster.py",
+            "console": "integratedTerminal",
+            "args": ["--noBot","--debug"]
+        },
+        {
             "name": "Python: Current File",
             "type": "python",
             "request": "launch",
