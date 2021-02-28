@@ -6,3 +6,4 @@ nohup.out
 !configTemplate.cfg
 *.old
 *.log
+_*creds*

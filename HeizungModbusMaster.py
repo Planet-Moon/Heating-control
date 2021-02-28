@@ -398,6 +398,18 @@ def calculate_total_power_draw():
         if current_power > 0:
             leistung_solar += current_power
 
+    import requests
+    from requests.auth import HTTPBasicAuth
+    import re
+    import _pikocreds
+
+    daten = requests.get(_pikocreds.address,auth=HTTPBasicAuth(_pikocreds.usr, _pikocreds.pwd))
+    text = daten.text
+    liste = text.split("\r\n")
+    piko_pwr = int(re.findall("\d+",liste[45])[0])
+    del text, liste, daten
+    leistung_solar += piko_pwr
+
     leistung_batterie = 0
     for i in smaDict.get("Batterie"):
         current_battery_inverter = smaDict.get("Batterie")[i]
