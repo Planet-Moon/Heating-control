@@ -1,3 +1,2 @@
--e ./modbus
--e ./modbus-server
--e ./sma-devices
+-e ./libs/modbus
+-e ./libs/sma-devices
