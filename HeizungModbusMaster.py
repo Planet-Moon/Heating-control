@@ -50,13 +50,15 @@ def readConfig(configFilePath):
             modbusDict[i] = modbus_device(ipAddress=temp_modbus.get("ip"), port=temp_modbus.get("port"))
             modbusRegisters = temp_modbus.get("registers")
             for j in modbusRegisters:
-                modbusDict.get(i).newRegister(j.get("name"),
+                success = modbusDict.get(i).newRegister(j.get("name"),
                     int(j.get("address")),
                     int(j.get("length")),
                     factor=float(j.get("factor")),
                     type_=j.get("type"),
                     unit=j.get("unit"),
                     signed=bool(j.get("signed")))
+                if not success:
+                    raise ValueError("Modbus server not responding")
                 print(modbusDict[i].read_string(j.get("name")))
                 pass
 
