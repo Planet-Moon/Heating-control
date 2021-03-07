@@ -405,13 +405,18 @@ def calculate_total_power_draw():
     import re
     import _pikocreds
 
-    daten = requests.get(_pikocreds.address,auth=HTTPBasicAuth(_pikocreds.usr, _pikocreds.pwd))
-    text = daten.text
-    liste = text.split("\r\n")
+    try:
+        daten = requests.get(_pikocreds.address,auth=HTTPBasicAuth(_pikocreds.usr, _pikocreds.pwd))
+        text = daten.text
+        liste = text.split("\r\n")
+    except:
+        liste = [0]
+
     try:
         piko_pwr = int(re.findall("\d+",liste[45])[0])
     except:
         piko_pwr = 0
+
 
     del text, liste, daten
     leistung_solar += piko_pwr
